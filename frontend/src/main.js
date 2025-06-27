@@ -23,6 +23,52 @@ const modals = {
   });
 });
 
+async function loadHostname() {
+  try {
+    const res = await fetch(`${API_BASE}/hostname`);
+    const data = await res.json();
+    console.log(data);
+    const hostnameElement = document.getElementById("hostname");
+    if (data.hostname) {
+      hostnameElement.textContent = `Hostname: ${data.hostname}`;
+    } else {
+      hostnameElement.textContent = "Hostname: Not available";
+    }
+  } catch (error) {
+    console.error("Error fetching hostname:", error);
+    const hostnameElement = document.getElementById("hostname");
+    hostnameElement.textContent = "Hostname: Error fetching";
+  }
+}
+loadHostname();
+
+async function loadHealthStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/health`);
+    const data = await res.json();
+    console.log(data);
+    const healthStatusElement = document.getElementById("healthStatus");
+    const healthIndicator = document.querySelector(".health-indicator");
+    if (data.status === "ok") {
+      healthStatusElement.textContent = "Healthy";
+      healthIndicator.className = "health-indicator bg-success";
+    } else if (data.status === "unhealthy") {
+      healthStatusElement.textContent = "Unhealthy";
+      healthIndicator.className = "health-indicator bg-danger";
+    } else {
+      healthStatusElement.textContent = "Unknown";
+      healthIndicator.className = "health-indicator bg-warning";
+    }
+  } catch (error) {
+    console.error("Error fetching health status:", error);
+    const healthStatusElement = document.getElementById("healthStatus");
+    const healthIndicator = document.querySelector(".health-indicator");
+    healthStatusElement.textContent = "Error fetching";
+    healthIndicator.className = "health-indicator bg-secondary";
+  }
+}
+loadHealthStatus();
+
 async function loadJobs() {
   const res = await fetch(`${API_BASE}/cron-jobs`);
   const jobs = await res.json();

@@ -12,7 +12,9 @@
   </head>
   <body>
     <div class="container">
-      <h5 class="mb-4 mt-4 pt-2 border-top border-white text-uppercase">Cron Jobs</h5>
+      <div class="d-flex justify-content-between mb-4 mt-4 pt-2 border-top border-white text-uppercase">
+        <h5>Cron Jobs</h5>
+      </div>
 
       <div class="d-flex justify-content-end mb-3">
         <button class="btn btn-sm btn-link" data-refresh>Refresh</button>
@@ -32,6 +34,16 @@
           <!-- Cron jobs will be populated here -->
         </tbody>
       </table>
+
+      <footer class="sticky-bottom">
+        <div class="d-flex justify-content-between mt-4 pt-2 border-top border-white">
+          <p class="text-muted" id="hostname">Hostname: -</p>
+          <div class="d-flex align-items-center">
+            <span class="health-indicator"></span>
+            <p class="text-muted" id="healthStatus">Checking...</p>
+          </div>
+        </div>
+      </footer>
     </div>
 
     <!-- Add Job Modal -->
