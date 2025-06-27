@@ -57,8 +57,16 @@ td {
   border-color: #ffffff;
 }
 
+.btn-close {
+  background-image: none;
+}
+
 .dropdown-menu {
   padding: 8px;
+}
+
+.form-control {
+  border-radius: 0px;
 }
 
 .badge {
