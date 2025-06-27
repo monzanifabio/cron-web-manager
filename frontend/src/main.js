@@ -74,6 +74,7 @@ async function loadJobs() {
   const jobs = await res.json();
 
   console.log(jobs);
+  countJobsByStatus(jobs);
   const tbody = document.getElementById("cronTableBody");
   tbody.innerHTML = "";
   jobs.forEach((job, index) => {
@@ -103,6 +104,20 @@ async function loadJobs() {
       </tr>`;
     tbody.insertAdjacentHTML("beforeend", row);
   });
+
+  function countJobsByStatus(jobs) {
+    // Update total jobs count
+    const totalJobsElement = document.getElementById("totalJobs");
+    totalJobsElement.textContent = jobs.length > 0 ? `${jobs.length}` : "0";
+
+    // Update active jobs count
+    const activeJobsElement = document.getElementById("activeJobs");
+    activeJobsElement.textContent = jobs.filter((job) => job.enabled).length > 0 ? `${jobs.filter((job) => job.enabled).length}` : "0";
+
+    // Update inactive jobs count
+    const inactiveJobsElement = document.getElementById("inactiveJobs");
+    inactiveJobsElement.textContent = jobs.filter((job) => !job.enabled).length > 0 ? `${jobs.filter((job) => !job.enabled).length}` : "0";
+  }
 
   // Add event listeners using delegation
   document.getElementById("cronTableBody").addEventListener("click", (e) => {
