@@ -248,3 +248,18 @@ document.querySelector("[data-refresh]").addEventListener("click", loadJobs);
 
 // Initial load
 loadJobs();
+
+async function loadLogs(logPath, lines = 100) {
+  if (!logPath) {
+    document.getElementById("logOutput").textContent = "No log file specified.";
+    return;
+  }
+  const res = await fetch(`${API_BASE}/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
+  const data = await res.json();
+  const logElement = document.getElementById("logOutput");
+  if (data.log) {
+    logElement.textContent = data.log;
+  } else {
+    logElement.textContent = data.error || "No log data available.";
+  }
+}

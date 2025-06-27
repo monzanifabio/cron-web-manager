@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List
+import subprocess
 
 import crontab_utils
 
@@ -13,6 +14,7 @@ class CronJobBase(BaseModel):
     comment: str = ""
     valid: bool
     has_logging: bool
+    log_path: str = ""  # Add this line
 
 class CronJobCreate(CronJobBase):
     pass
@@ -49,3 +51,14 @@ def delete_cron_job(index: int):
         return {"status": "deleted"}
     except IndexError:
         raise HTTPException(status_code=404, detail="Invalid index")
+
+@router.get("/api/logs")
+def get_logs(path: str = Query(...), lines: int = Query(100)):
+    try:
+        result = subprocess.run(
+            ["tail", f"-n{lines}", path],
+            capture_output=True, text=True, check=True
+        )
+        return {"log": result.stdout}
+    except Exception as e:
+        return {"error": str(e)}

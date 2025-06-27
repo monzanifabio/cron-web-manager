@@ -1,5 +1,6 @@
 from crontab import CronTab
 from typing import List, Dict
+import re
 
 def get_crontab() -> List[dict]:
     """Returns the current user's crontab as a list of dictionaries containing job details."""
@@ -13,7 +14,8 @@ def get_crontab() -> List[dict]:
             'enabled': bool(job.is_enabled()),
             'comment': str(job.comment),
             'valid': bool(job.is_valid()),
-            'has_logging': any(pattern in command for pattern in ['>> ', '> ', '2>&1', '2> '])
+            'has_logging': any(pattern in command for pattern in ['>> ', '> ', '2>&1', '2> ']),
+            'log_path': extract_log_path(command)
         })
     return jobs
 
@@ -73,3 +75,8 @@ def update_cron_job(index: int, job_data: Dict) -> None:
         cron.write()
     else:
         raise IndexError("Invalid cron job index")
+
+# Example: extract log path from command (very basic)
+def extract_log_path(command: str) -> str:
+    match = re.search(r'>\s*(\S+)', command)
+    return match.group(1) if match else ""
