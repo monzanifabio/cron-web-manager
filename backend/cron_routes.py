@@ -11,6 +11,8 @@ class CronJobBase(BaseModel):
     command: str
     enabled: bool
     comment: str = ""
+    valid: bool
+    has_logging: any
 
 class CronJobCreate(CronJobBase):
     pass
