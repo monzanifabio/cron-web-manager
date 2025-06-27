@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from cron_routes import router
+import socket
 
 
 app = FastAPI(
@@ -24,3 +25,12 @@ app.include_router(router)
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+# Hostname route
+@app.get("/api/hostname")
+def get_hostname():
+    try:
+        hostname = socket.gethostname()
+        return {"hostname": hostname}
+    except Exception as e:
+        return {"error": str(e)}
