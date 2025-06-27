@@ -102,6 +102,9 @@ async function loadJobs() {
             </ul>
           </div>
         </td>
+        <td>
+          <button class="btn btn-sm btn-info" onclick="loadLogs('${job.log_path}')">View Log</button>
+        </td>
       </tr>`;
     tbody.insertAdjacentHTML("beforeend", row);
   });
@@ -263,3 +266,6 @@ async function loadLogs(logPath, lines = 100) {
     logElement.textContent = data.error || "No log data available.";
   }
 }
+
+// Make loadLogs available globally
+window.loadLogs = loadLogs;
