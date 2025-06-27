@@ -53,10 +53,14 @@ def delete_cron_job(index: int):
         raise HTTPException(status_code=404, detail="Invalid index")
 
 @router.get("/api/logs")
-def get_logs(path: str = Query(...), lines: int = Query(100)):
+def get_logs(path: str = Query(...), lines: int = Query(None)):
     try:
+        cmd = ["tail"]
+        if lines is not None:
+            cmd.append(f"-n{lines}")
+        cmd.append(path)
         result = subprocess.run(
-            ["tail", f"-n{lines}", path],
+            cmd,
             capture_output=True, text=True, check=True
         )
         return {"log": result.stdout}
