@@ -12,7 +12,7 @@ class CronJobBase(BaseModel):
     enabled: bool
     comment: str = ""
     valid: bool
-    has_logging: any
+    has_logging: bool
 
 class CronJobCreate(CronJobBase):
     pass
