@@ -2,6 +2,9 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List
 import subprocess
+import os
+from pathlib import Path
+from typing import Optional
 
 import crontab_utils
 
@@ -52,17 +55,55 @@ def delete_cron_job(index: int):
     except IndexError:
         raise HTTPException(status_code=404, detail="Invalid index")
 
-@router.get("/api/logs")
-def get_logs(path: str = Query(...), lines: int = Query(None)):
+@router.get("/logs")
+def get_logs(path: str = Query(..., description="Full path to the log file"), 
+             lines: Optional[int] = Query(None, description="Number of lines to return")):
     try:
+        # Validate that the path exists and is a file
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail=f"File not found: {path}")
+        
+        if not os.path.isfile(path):
+            raise HTTPException(status_code=400, detail=f"Path is not a file: {path}")
+        
+        # Security check - resolve the path
+        resolved_path = Path(path).resolve()
+        
+        # Optional: Restrict to specific directories for security
+        # allowed_dirs = [Path("/home/pi"), Path("/var/log")]
+        # if not any(str(resolved_path).startswith(str(allowed_dir)) for allowed_dir in allowed_dirs):
+        #     raise HTTPException(status_code=403, detail="Access to this directory is not allowed")
+        
+        # Build the tail command
         cmd = ["tail"]
-        if lines is not None:
-            cmd.append(f"-n{lines}")
-        cmd.append(path)
+        if lines is not None and lines > 0:
+            cmd.extend(["-n", str(lines)])
+        cmd.append(str(resolved_path))
+        
+        # Execute the command
         result = subprocess.run(
             cmd,
-            capture_output=True, text=True, check=True
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30  # Add timeout to prevent hanging
         )
-        return {"log": result.stdout}
+        
+        return {
+            "success": True,
+            "path": str(resolved_path),
+            "lines_requested": lines,
+            "log": result.stdout
+        }
+        
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error reading file: {e.stderr if e.stderr else str(e)}"
+        )
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=500, detail="Request timeout while reading file")
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied to read file")
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")

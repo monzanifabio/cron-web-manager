@@ -257,7 +257,7 @@ async function loadLogs(logPath, lines = 100) {
     document.getElementById("logOutput").textContent = "No log file specified.";
     return;
   }
-  const res = await fetch(`${API_BASE}/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
+  const res = await fetch(`${API_BASE}/cron-jobs/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
   const data = await res.json();
   const logElement = document.getElementById("logOutput");
   if (data.log) {
