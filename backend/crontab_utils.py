@@ -78,5 +78,6 @@ def update_cron_job(index: int, job_data: Dict) -> None:
 
 # Example: extract log path from command (very basic)
 def extract_log_path(command: str) -> str:
-    match = re.search(r'>\s*(\S+)', command)
+    # Match '>> /path/to/log.log' or '> /path/to/log.log', but not '2>' or '2>&1'
+    match = re.search(r'(?:>>|>)\s+([^\s]+\.log)', command)
     return match.group(1) if match else ""
