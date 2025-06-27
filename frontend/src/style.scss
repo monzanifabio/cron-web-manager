@@ -1,0 +1,61 @@
+@import "bootstrap/scss/bootstrap";
+
+// Custom styles that override Bootstrap
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+}
+
+.table {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  background-color: transparent;
+}
+.table > :not(caption) > * > * {
+  background-color: transparent;
+}
+th {
+  background-color: #2b3134 !important;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+td {
+  vertical-align: middle;
+}
+
+.dropdown-menu {
+  padding: 8px;
+}
+
+.badge {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  border-radius: 0px;
+}
+
+.modal-header,
+.modal-footer {
+  border: none;
+}
+
+.form-label {
+  font-family: "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.badge-success {
+  background-color: #204736;
+  color: #56ad87;
+}
+
+.badge-danger {
+  background-color: #542a26;
+  color: #ae4d41;
+}
