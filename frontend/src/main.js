@@ -79,7 +79,7 @@ async function loadJobs() {
   tbody.innerHTML = "";
   jobs.forEach((job, index) => {
     const row = `<tr>
-        <td>${job.schedule}</td>
+        <td class="text-nowrap">${job.schedule}</td>
         <td>${job.command}</td>
         <td>
           <span class="badge ${job.enabled ? "badge-success" : "badge-danger"}">
