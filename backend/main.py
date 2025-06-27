@@ -24,7 +24,23 @@ app.include_router(router)
 # Health check route
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok"}
+    health = {"status": "ok"}
+    problems = []
+
+    # Example check: router is loaded (replace with real checks)
+    try:
+        if not router:
+            problems.append("Router not loaded")
+    except Exception as e:
+        problems.append(f"Router check failed: {str(e)}")
+
+    # Add more checks here (e.g., DB connection, file access, etc.)
+
+    if problems:
+        health["status"] = "error"
+        health["problems"] = problems
+
+    return health
 
 # Hostname route
 @app.get("/api/hostname")
