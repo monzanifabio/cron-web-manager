@@ -1,5 +1,6 @@
 import "/src/style.scss";
 import * as bootstrap from "bootstrap";
+import cronValidate from "cron-validate";
 
 const API_BASE = "http://192.168.0.15:8000/api";
 
@@ -88,11 +89,11 @@ async function loadJobs() {
         </td>
         <td>
           <div class="dropdown">
-            <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-sm btn-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C11.175 3 10.5 3.675 10.5 4.5C10.5 5.325 11.175 6 12 6C12.825 6 13.5 5.325 13.5 4.5C13.5 3.675 12.825 3 12 3ZM12 18C11.175 18 10.5 18.675 10.5 19.5C10.5 20.325 11.175 21 12 21C12.825 21 13.5 20.325 13.5 19.5C13.5 18.675 12.825 18 12 18ZM12 10.5C11.175 10.5 10.5 11.175 10.5 12C10.5 12.825 11.175 13.5 12 13.5C12.825 13.5 13.5 12.825 13.5 12C13.5 11.175 12.825 10.5 12 10.5Z"></path></svg>
             </button>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="edit" data-index="${index}" data-schedule="${job.schedule}" data-command="${job.command}" data-enabled="${job.enabled}">
+              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="edit" data-index="${index}" data-schedule="${job.schedule}" data-command="${job.command}" data-enabled="${job.enabled}" data-has-logging="${job.has_logging}">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.41421 15.89L16.5563 5.74785L15.1421 4.33363L5 14.4758V15.89H6.41421ZM7.24264 17.89H3V13.6473L14.435 2.21231C14.8256 1.82179 15.4587 1.82179 15.8492 2.21231L18.6777 5.04074C19.0682 5.43126 19.0682 6.06443 18.6777 6.45495L7.24264 17.89ZM3 19.89H21V21.89H3V19.89Z"></path></svg>
               Edit</a></li>
               <li><a class="dropdown-item text-danger d-flex align-items-center gap-2" href="#" data-action="delete" data-index="${index}">
@@ -127,7 +128,7 @@ async function loadJobs() {
       deleteJob(parseInt(target.dataset.index));
     } else if (target.matches("[data-action='edit']")) {
       e.preventDefault();
-      editJob(parseInt(target.dataset.index), target.dataset.schedule, target.dataset.command, target.dataset.enabled === "true");
+      editJob(parseInt(target.dataset.index), target.dataset.schedule, target.dataset.command, target.dataset.enabled === "true", target.dataset.hasLogging === "true");
     }
   });
 }
@@ -153,11 +154,27 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
 
+  // Validate cron schedule
+  const cronResult = cronValidate(form.schedule.value);
+  if (!cronResult.isValid()) {
+    alert("Invalid cron schedule!");
+    form.schedule.focus();
+    return;
+  }
+
+  let command = form.command.value;
+  const hasLogging = form.has_logging?.checked || false;
+  if (hasLogging && !command.trim().endsWith("2>&1")) {
+    command = command.trim() + " 2>&1";
+  }
+
   const payload = {
     schedule: form.schedule.value,
-    command: form.command.value,
+    command,
     enabled: form.enabled.checked,
     comment: form.comment?.value || "",
+    valid: cronResult.isValid(),
+    has_logging: hasLogging,
   };
 
   await fetch(`${API_BASE}/cron-jobs`, {
@@ -167,18 +184,19 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   });
 
   document.querySelector("[data-refresh]").focus();
-  modals.add.hide(); // Add this line
+  modals.add.hide();
   form.reset();
   loadJobs();
 });
 
 // Modify the editJob function to include enabled state
-window.editJob = function (index, schedule, command, enabled) {
+window.editJob = function (index, schedule, command, enabled, hasLogging) {
   const form = document.getElementById("editForm");
   form.index.value = index;
   form.schedule.value = schedule;
   form.command.value = command;
   form.enabled.checked = enabled;
+  form.has_logging.checked = hasLogging;
   modals.edit.show();
 };
 
@@ -187,12 +205,30 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
 
+  // Validate cron schedule
+  const cronResult = cronValidate(form.schedule.value);
+  if (!cronResult.isValid()) {
+    alert("Invalid cron schedule!");
+    form.schedule.focus();
+    return;
+  }
+
+  let command = form.command.value.trim();
+  const hasLogging = form.has_logging?.checked || false;
+  if (hasLogging && !command.endsWith("2>&1")) {
+    command = command + " 2>&1";
+  } else if (!hasLogging && command.endsWith("2>&1")) {
+    command = command.replace(/\s*2>&1$/, "");
+  }
+
   const payload = {
     index: parseInt(form.index.value),
     schedule: form.schedule.value,
-    command: form.command.value,
+    command,
     enabled: form.enabled.checked,
     comment: form.comment?.value || "",
+    valid: cronResult.isValid(),
+    has_logging: hasLogging,
   };
 
   await fetch(`${API_BASE}/cron-jobs`, {
@@ -202,7 +238,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   });
 
   document.querySelector("[data-refresh]").focus();
-  modals.edit.hide(); // Changed from modal.hide()
+  modals.edit.hide();
   form.reset();
   loadJobs();
 });
