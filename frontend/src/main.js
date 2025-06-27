@@ -51,7 +51,7 @@ async function loadHealthStatus() {
     const healthStatusElement = document.getElementById("healthStatus");
     const healthIndicator = document.querySelector(".health-indicator");
     if (data.status === "ok") {
-      healthStatusElement.textContent = "Healthy";
+      healthStatusElement.textContent = "Running";
       healthIndicator.className = "health-indicator bg-success";
     } else if (data.status === "unhealthy") {
       healthStatusElement.textContent = "Unhealthy";
