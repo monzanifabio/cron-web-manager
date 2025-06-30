@@ -96,6 +96,12 @@ async function loadJobs() {
             <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="loadLogs('${job.log_path}')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 22H5C3.34315 22 2 20.6569 2 19V3C2 2.44772 2.44772 2 3 2H17C17.5523 2 18 2.44772 18 3V15H22V19C22 20.6569 20.6569 22 19 22ZM18 17V19C18 19.5523 18.4477 20 19 20C19.5523 20 20 19.5523 20 19V17H18ZM16 20V4H4V19C4 19.5523 4.44772 20 5 20H16ZM6 7H14V9H6V7ZM6 11H14V13H6V11ZM6 15H11V17H6V15Z"></path></svg>
             View logs</a></li>
+            <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="duplicate" data-index="${index}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.9998 6V3C6.9998 2.44772 7.44752 2 7.9998 2H19.9998C20.5521 2 20.9998 2.44772 20.9998 3V17C20.9998 17.5523 20.5521 18 19.9998 18H16.9998V20.9991C16.9998 21.5519 16.5499 22 15.993 22H4.00666C3.45059 22 3 21.5554 3 20.9991L3.0026 7.00087C3.0027 6.44811 3.45264 6 4.00942 6H6.9998ZM5.00242 8L5.00019 20H14.9998V8H5.00242ZM8.9998 6H16.9998V16H18.9998V4H8.9998V6Z"></path></svg>
+                Duplicate
+                </a>
+              </li>
               <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="edit" data-index="${index}" data-schedule="${job.schedule}" data-command="${job.command}" data-enabled="${job.enabled}" data-has-logging="${job.has_logging}">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.41421 15.89L16.5563 5.74785L15.1421 4.33363L5 14.4758V15.89H6.41421ZM7.24264 17.89H3V13.6473L14.435 2.21231C14.8256 1.82179 15.4587 1.82179 15.8492 2.21231L18.6777 5.04074C19.0682 5.43126 19.0682 6.06443 18.6777 6.45495L7.24264 17.89ZM3 19.89H21V21.89H3V19.89Z"></path></svg>
               Edit</a></li>
@@ -124,14 +130,20 @@ async function loadJobs() {
   }
 
   // Add event listeners using delegation
-  document.getElementById("cronTableBody").addEventListener("click", (e) => {
-    const target = e.target;
-    if (target.matches("[data-action='delete']")) {
+  document.getElementById("cronTableBody").addEventListener("click", async (e) => {
+    const target = e.target.closest("[data-action]");
+    if (!target) return;
+    const action = target.getAttribute("data-action");
+    const index = target.getAttribute("data-index");
+    if (action === "duplicate") {
+      await duplicateJob(index);
+      loadJobs();
+    } else if (action === "delete") {
       e.preventDefault();
-      deleteJob(parseInt(target.dataset.index));
-    } else if (target.matches("[data-action='edit']")) {
+      deleteJob(parseInt(index));
+    } else if (action === "edit") {
       e.preventDefault();
-      editJob(parseInt(target.dataset.index), target.dataset.schedule, target.dataset.command, target.dataset.enabled === "true", target.dataset.hasLogging === "true");
+      editJob(parseInt(index), target.dataset.schedule, target.dataset.command, target.dataset.enabled === "true", target.dataset.hasLogging === "true");
     }
   });
 }
@@ -274,3 +286,10 @@ async function loadLogs(logPath, lines = 100) {
 
 // Make loadLogs available globally
 window.loadLogs = loadLogs;
+
+async function duplicateJob(index) {
+  await fetch(`${API_BASE}/cron-jobs/${index}/duplicate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+}

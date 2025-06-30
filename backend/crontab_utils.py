@@ -76,6 +76,19 @@ def update_cron_job(index: int, job_data: Dict) -> None:
     else:
         raise IndexError("Invalid cron job index")
 
+def duplicate_cron_job(index: int) -> None:
+    """Duplicates an existing cron job by index."""
+    cron = CronTab(user=True)
+    jobs = list(cron)
+    if 0 <= index < len(jobs):
+        job = jobs[index]
+        new_job = cron.new(command=job.command, comment=job.comment)
+        new_job.setall(job.slices)
+        new_job.enable(False)  # Set duplicated job as inactive
+        cron.write()
+    else:
+        raise IndexError("Invalid cron job index.")
+
 # Example: extract log path from command (very basic)
 def extract_log_path(command: str) -> str:
     # Match '>> /path/to/log.log' or '> /path/to/log.log', but not '2>' or '2>&1'

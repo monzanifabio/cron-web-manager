@@ -128,6 +128,13 @@ td {
   border-radius: 0px;
 }
 
+#logOutput {
+  min-height: 300px;
+  font-size: 0.8rem;
+  color: #eee;
+  margin: 0;
+}
+
 .form-label {
   font-family: "IBM Plex Mono", monospace;
   text-transform: uppercase;

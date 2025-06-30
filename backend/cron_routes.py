@@ -107,3 +107,11 @@ def get_logs(path: str = Query(..., description="Full path to the log file"),
         raise HTTPException(status_code=403, detail="Permission denied to read file")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+@router.post("/{index}/duplicate")
+def duplicate_cron_job(index: int):
+    try:
+        crontab_utils.duplicate_cron_job(index)
+        return {"status": "duplicated"}
+    except IndexError:
+        raise HTTPException(status_code=404, detail="Invalid index")
