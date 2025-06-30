@@ -93,6 +93,9 @@ async function loadJobs() {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C11.175 3 10.5 3.675 10.5 4.5C10.5 5.325 11.175 6 12 6C12.825 6 13.5 5.325 13.5 4.5C13.5 3.675 12.825 3 12 3ZM12 18C11.175 18 10.5 18.675 10.5 19.5C10.5 20.325 11.175 21 12 21C12.825 21 13.5 20.325 13.5 19.5C13.5 18.675 12.825 18 12 18ZM12 10.5C11.175 10.5 10.5 11.175 10.5 12C10.5 12.825 11.175 13.5 12 13.5C12.825 13.5 13.5 12.825 13.5 12C13.5 11.175 12.825 10.5 12 10.5Z"></path></svg>
             </button>
             <ul class="dropdown-menu">
+            <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="loadLogs('${job.log_path}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 22H5C3.34315 22 2 20.6569 2 19V3C2 2.44772 2.44772 2 3 2H17C17.5523 2 18 2.44772 18 3V15H22V19C22 20.6569 20.6569 22 19 22ZM18 17V19C18 19.5523 18.4477 20 19 20C19.5523 20 20 19.5523 20 19V17H18ZM16 20V4H4V19C4 19.5523 4.44772 20 5 20H16ZM6 7H14V9H6V7ZM6 11H14V13H6V11ZM6 15H11V17H6V15Z"></path></svg>
+            View logs</a></li>
               <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="edit" data-index="${index}" data-schedule="${job.schedule}" data-command="${job.command}" data-enabled="${job.enabled}" data-has-logging="${job.has_logging}">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.41421 15.89L16.5563 5.74785L15.1421 4.33363L5 14.4758V15.89H6.41421ZM7.24264 17.89H3V13.6473L14.435 2.21231C14.8256 1.82179 15.4587 1.82179 15.8492 2.21231L18.6777 5.04074C19.0682 5.43126 19.0682 6.06443 18.6777 6.45495L7.24264 17.89ZM3 19.89H21V21.89H3V19.89Z"></path></svg>
               Edit</a></li>
@@ -101,9 +104,6 @@ async function loadJobs() {
               Delete</a></li>
             </ul>
           </div>
-        </td>
-        <td>
-          <button class="btn btn-sm btn-info" onclick="loadLogs('${job.log_path}')">View Log</button>
         </td>
       </tr>`;
     tbody.insertAdjacentHTML("beforeend", row);
@@ -255,6 +255,8 @@ loadJobs();
 async function loadLogs(logPath, lines = 100) {
   if (!logPath) {
     document.getElementById("logOutput").textContent = "No log file specified.";
+    const logModal = new bootstrap.Modal(document.getElementById("logModal"));
+    logModal.show();
     return;
   }
   const res = await fetch(`${API_BASE}/cron-jobs/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
@@ -265,6 +267,9 @@ async function loadLogs(logPath, lines = 100) {
   } else {
     logElement.textContent = data.error || "No log data available.";
   }
+  // Show the modal after loading the log
+  const logModal = new bootstrap.Modal(document.getElementById("logModal"));
+  logModal.show();
 }
 
 // Make loadLogs available globally

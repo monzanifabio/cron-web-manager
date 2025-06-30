@@ -55,7 +55,22 @@
         </tbody>
       </table>
 
-      <pre id="logOutput"></pre>
+      <!-- Log Viewer Modal -->
+      <div class="modal fade" id="logModal" tabindex="-1" role="dialog" aria-labelledby="logModalLabel">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title text-uppercase" id="logModalLabel">Job Log</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-focus="false">
+                <svg class="align-top" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"></path></svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <pre id="logOutput" style="min-height: 300px; background: #222; color: #eee; padding: 1em; border-radius: 4px; margin: 0"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <footer class="fixed-bottom">
         <div class="container d-flex justify-content-between py-2 border-top border-white">
