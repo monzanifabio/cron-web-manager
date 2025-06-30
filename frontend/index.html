@@ -11,76 +11,86 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div class="container h-100 pt-4">
-      <div class="d-flex justify-content-between align-items-center mb-4 pt-2 border-top border-white text-uppercase">
-        <h5 class="m-0">Cron Jobs</h5>
-        <button class="btn btn-sm" data-refresh>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M5.46257 4.43262C7.21556 2.91688 9.5007 2 12 2C17.5228 2 22 6.47715 22 12C22 14.1361 21.3302 16.1158 20.1892 17.7406L17 12H20C20 7.58172 16.4183 4 12 4C9.84982 4 7.89777 4.84827 6.46023 6.22842L5.46257 4.43262ZM18.5374 19.5674C16.7844 21.0831 14.4993 22 12 22C6.47715 22 2 17.5228 2 12C2 9.86386 2.66979 7.88416 3.8108 6.25944L7 12H4C4 16.4183 7.58172 20 12 20C14.1502 20 16.1022 19.1517 17.5398 17.7716L18.5374 19.5674Z"></path>
-          </svg>
-        </button>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex gap-3 font-console">
-          <div>
-            <h4 id="totalJobs" class="mb-0">-</h4>
-            <p class="text-muted text-uppercase small m-0">Total jobs</p>
-          </div>
-          <div>
-            <h4 id="activeJobs" class="mb-0">-</h4>
-            <p class="text-muted text-uppercase small m-0">Active</p>
-          </div>
-          <div>
-            <h4 id="inactiveJobs" class="mb-0">-</h4>
-            <p class="text-muted text-uppercase small m-0">Inactive</p>
-          </div>
-        </div>
-        <div>
-          <button class="btn btn-sm btn-main" data-bs-toggle="modal" data-bs-target="#addModal">Add Job</button>
+    <div class="container vh-100 d-flex flex-column">
+      <!-- Header Section -->
+      <div class="header-section flex-shrink-0">
+        <div class="d-flex justify-content-between align-items-center pt-2 mt-3 border-top border-white text-uppercase">
+          <h5 class="m-0">Cron Jobs</h5>
+          <button class="btn btn-sm" data-refresh>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5.46257 4.43262C7.21556 2.91688 9.5007 2 12 2C17.5228 2 22 6.47715 22 12C22 14.1361 21.3302 16.1158 20.1892 17.7406L17 12H20C20 7.58172 16.4183 4 12 4C9.84982 4 7.89777 4.84827 6.46023 6.22842L5.46257 4.43262ZM18.5374 19.5674C16.7844 21.0831 14.4993 22 12 22C6.47715 22 2 17.5228 2 12C2 9.86386 2.66979 7.88416 3.8108 6.25944L7 12H4C4 16.4183 7.58172 20 12 20C14.1502 20 16.1022 19.1517 17.5398 17.7716L18.5374 19.5674Z"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="text-uppercase">Schedule</th>
-            <th class="text-uppercase">Command</th>
-            <th class="text-uppercase">Status</th>
-            <th class="text-uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="cronTableBody">
-          <!-- Cron jobs will be populated here -->
-        </tbody>
-      </table>
-
-      <!-- Log Viewer Modal -->
-      <div class="modal fade" id="logModal" tabindex="-1" role="dialog" aria-labelledby="logModalLabel">
-        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title text-uppercase" id="logModalLabel">Job Log</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-focus="false">
-                <svg class="align-top" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"></path></svg>
-              </button>
+      <!-- Stats Section -->
+      <div class="stats-section flex-shrink-0">
+        <div class="d-flex justify-content-between align-items-center py-3">
+          <div class="d-flex gap-3 font-console">
+            <div>
+              <h4 id="totalJobs" class="mb-0">-</h4>
+              <p class="text-muted text-uppercase small m-0">Total jobs</p>
             </div>
-            <div class="modal-body">
-              <pre id="logOutput"></pre>
+            <div>
+              <h4 id="activeJobs" class="mb-0">-</h4>
+              <p class="text-muted text-uppercase small m-0">Active</p>
+            </div>
+            <div>
+              <h4 id="inactiveJobs" class="mb-0">-</h4>
+              <p class="text-muted text-uppercase small m-0">Inactive</p>
             </div>
           </div>
+          <div>
+            <button class="btn btn-sm btn-main" data-bs-toggle="modal" data-bs-target="#addModal">Add Job</button>
+          </div>
         </div>
       </div>
 
-      <footer class="fixed-bottom">
-        <div class="container d-flex justify-content-between py-2 border-top border-white">
-          <p class="text-muted" id="hostname">Hostname: -</p>
+      <!-- Table Section -->
+      <div class="table-section">
+        <div class="table-container">
+          <table class="table table-dark mb-0">
+            <thead>
+              <tr>
+                <th class="text-uppercase">Schedule</th>
+                <th class="text-uppercase">Command</th>
+                <th class="text-uppercase">Status</th>
+                <th class="text-uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cronTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer Section -->
+      <div class="footer-section py-2 border-top border-white">
+        <div class="d-flex justify-content-between align-items-center">
+          <p class="text-muted m-0" id="hostname">Hostname: server-01.example.com</p>
           <div class="d-flex align-items-center">
             <span class="health-indicator"></span>
-            <p class="text-muted" id="healthStatus">Checking...</p>
+            <p class="text-muted m-0" id="healthStatus">Healthy</p>
           </div>
         </div>
-      </footer>
+      </div>
+    </div>
+
+    <!-- Log Viewer Modal -->
+    <div class="modal fade" id="logModal" tabindex="-1" role="dialog" aria-labelledby="logModalLabel">
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-uppercase" id="logModalLabel">Job Log</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-focus="false">
+              <svg class="align-top" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"></path></svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <pre id="logOutput"></pre>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Add Job Modal -->
