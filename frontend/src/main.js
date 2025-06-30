@@ -65,7 +65,7 @@ async function loadHealthStatus() {
     const healthStatusElement = document.getElementById("healthStatus");
     const healthIndicator = document.querySelector(".health-indicator");
     healthStatusElement.textContent = "Error fetching";
-    healthIndicator.className = "health-indicator bg-secondary";
+    healthIndicator.className = "health-indicator bg-danger";
   }
 }
 loadHealthStatus();
@@ -118,15 +118,15 @@ async function loadJobs() {
   function countJobsByStatus(jobs) {
     // Update total jobs count
     const totalJobsElement = document.getElementById("totalJobs");
-    totalJobsElement.textContent = jobs.length > 0 ? `${jobs.length}` : "0";
+    totalJobsElement.innerHTML = jobs.length > 0 ? `${jobs.length}` : "0";
 
     // Update active jobs count
     const activeJobsElement = document.getElementById("activeJobs");
-    activeJobsElement.textContent = jobs.filter((job) => job.enabled).length > 0 ? `${jobs.filter((job) => job.enabled).length}` : "0";
+    activeJobsElement.innerHTML = jobs.filter((job) => job.enabled).length > 0 ? `${jobs.filter((job) => job.enabled).length}` : "0";
 
     // Update inactive jobs count
     const inactiveJobsElement = document.getElementById("inactiveJobs");
-    inactiveJobsElement.textContent = jobs.filter((job) => !job.enabled).length > 0 ? `${jobs.filter((job) => !job.enabled).length}` : "0";
+    inactiveJobsElement.innerHTML = jobs.filter((job) => !job.enabled).length > 0 ? `${jobs.filter((job) => !job.enabled).length}` : "0";
   }
 
   // Add event listeners using delegation
