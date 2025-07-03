@@ -2,7 +2,7 @@ import "/src/style.scss";
 import * as bootstrap from "bootstrap";
 import cronValidate from "cron-validate";
 
-const API_BASE = "http://192.168.0.15:8000/api";
+const API_BASE = "http://localhost:8000/api";
 
 // Initialize modals with focus options
 const modals = {
