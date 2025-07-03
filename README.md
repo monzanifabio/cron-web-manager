@@ -15,3 +15,7 @@
 `npm install`
 
 `npm run dev`
+
+### Docker setup
+
+`docker-compose up --build`
