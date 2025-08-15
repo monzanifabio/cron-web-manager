@@ -8,7 +8,7 @@ from typing import Optional
 
 import crontab_utils
 
-router = APIRouter(prefix="/api/cron-jobs", tags=["Cron Jobs"])
+router = APIRouter(prefix="/api/cron-jobs", tags=["Cron Jobs"], strict_slashes=False)
 
 class CronJobBase(BaseModel):
     schedule: str
