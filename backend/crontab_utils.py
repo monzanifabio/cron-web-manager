@@ -94,3 +94,15 @@ def extract_log_path(command: str) -> str:
     # Match '>> /path/to/log.log' or '> /path/to/log.log', but not '2>' or '2>&1'
     match = re.search(r'(?:>>|>)\s+([^\s]+\.log)', command)
     return match.group(1) if match else ""
+
+def import_cron_jobs(jobs: List[Dict]) -> None:
+    """Imports cron jobs from a list of dictionaries."""
+    cron = CronTab(user=True)
+    for job_data in jobs:
+        job = cron.new(command=job_data["command"], comment=job_data.get("comment", ""))
+        job.setall(job_data["schedule"])
+        if not job.is_valid():
+            raise ValueError(f"Invalid cron schedule: {job_data['schedule']}")
+        if not job_data.get("enabled", True):
+            job.enable(False)
+    cron.write()

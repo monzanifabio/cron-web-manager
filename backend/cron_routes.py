@@ -111,3 +111,23 @@ def duplicate_cron_job(index: int):
         return {"status": "duplicated"}
     except IndexError:
         raise HTTPException(status_code=404, detail="Invalid index")
+
+# Export jobs
+@router.get("/export")
+def export_cron_jobs():
+    """Endpoint to export all cron jobs to a JSON file."""
+    return crontab_utils.get_crontab()
+
+class CronJobImport(BaseModel):
+    jobs: List[CronJobBase]
+
+# Import jobs
+@router.post("/import")
+def import_cron_jobs(payload: CronJobImport):
+    """Endpoint to import cron jobs from a JSON file."""
+    try:
+        jobs_to_import = [job.dict() for job in payload.jobs]
+        crontab_utils.import_cron_jobs(jobs_to_import)
+        return {"status": "imported"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
