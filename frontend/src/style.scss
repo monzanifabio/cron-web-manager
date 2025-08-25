@@ -2,6 +2,8 @@
 
 :root {
   --accent: #49e188;
+  --font-primary: "Manrope", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
 }
 // Custom styles that override Bootstrap
 * {
@@ -106,6 +108,9 @@ td {
 }
 
 .form-control {
+  border-radius: 0px;
+}
+.form-select {
   border-radius: 0px;
 }
 

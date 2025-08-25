@@ -51,7 +51,9 @@
             <button class="btn btn-sm btn-main" data-bs-toggle="modal" data-bs-target="#addModal">Add Job</button>
             <div class="dropdown">
               <button class="btn btn-sm btn-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C11.175 3 10.5 3.675 10.5 4.5C10.5 5.325 11.175 6 12 6C12.825 6 13.5 5.325 13.5 4.5C13.5 3.675 12.825 3 12 3ZM12 18C11.175 18 10.5 18.675 10.5 19.5C10.5 20.325 11.175 21 12 21C12.825 21 13.5 20.325 13.5 19.5C13.5 18.675 12.825 18 12 18ZM12 10.5C11.175 10.5 10.5 11.175 10.5 12C10.5 12.825 11.175 13.5 12 13.5C12.825 13.5 13.5 12.825 13.5 12C13.5 11.175 12.825 10.5 12 10.5Z"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3C11.175 3 10.5 3.675 10.5 4.5C10.5 5.325 11.175 6 12 6C12.825 6 13.5 5.325 13.5 4.5C13.5 3.675 12.825 3 12 3ZM12 18C11.175 18 10.5 18.675 10.5 19.5C10.5 20.325 11.175 21 12 21C12.825 21 13.5 20.325 13.5 19.5C13.5 18.675 12.825 18 12 18ZM12 10.5C11.175 10.5 10.5 11.175 10.5 12C10.5 12.825 11.175 13.5 12 13.5C12.825 13.5 13.5 12.825 13.5 12C13.5 11.175 12.825 10.5 12 10.5Z"></path>
+                </svg>
               </button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#" id="exportJobs">Export</a></li>
@@ -210,6 +212,60 @@
             </button>
           </div>
           <div class="modal-body">
+            <div class="cron-builder">
+              <label class="form-label">Select Frequency </label>
+              <select id="frequency" class="form-select mb-2">
+                <option value="minute">Every Minute</option>
+                <option value="hourly">Hourly</option>
+                <option value="daily" selected>Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="custom">Custom</option>
+              </select>
+
+              <div id="timeSelectors">
+                <label class="form-label"> Hour </label>
+                <select id="hour" class="form-select mb-2"></select>
+                <label class="form-label"> Minute </label>
+                <select id="minute" class="form-select mb-2"></select>
+              </div>
+
+              <div id="weeklySelector" style="display: none">
+                <label class="form-label"> Day of Week </label>
+                <select id="dayOfWeek" class="form-select mb-2">
+                  <option value="0">Sunday</option>
+                  <option value="1">Monday</option>
+                  <option value="2">Tuesday</option>
+                  <option value="3">Wednesday</option>
+                  <option value="4">Thursday</option>
+                  <option value="5">Friday</option>
+                  <option value="6">Saturday</option>
+                </select>
+              </div>
+
+              <div id="monthlySelector" style="display: none">
+                <label class="form-label"> Day of Month </label>
+                <select id="dayOfMonth" class="form-select mb-2"></select>
+              </div>
+
+              <div id="customSelector" style="display: none">
+                <label class="form-label">Minute </label>
+                <input id="cMinute" class="form-control mb-2" placeholder="* or 0-59" />
+                <label class="form-label">Hour </label>
+                <input id="cHour" class="form-control mb-2" placeholder="* or 0-23" />
+                <label class="form-label">Day of Month </label>
+                <input id="cDayOfMonth" class="form-control mb-2" placeholder="* or 1-31" />
+                <label class="form-label">Month </label>
+                <input id="cMonth" class="form-control mb-2" placeholder="* or 1-12" />
+                <label class="form-label">Day of Week </label>
+                <input id="cDayOfWeek" class="form-control mb-2" placeholder="* or 0-6" />
+              </div>
+
+              <div class="preview">
+                <div class="mono" id="cronString"></div>
+                <div id="cronText" style="margin-top: 4px; font-size: 14px; color: #555"></div>
+              </div>
+            </div>
             <label class="form-label">schedule</label>
             <input class="form-control mb-2" name="schedule" placeholder="* * * * *" required />
             <label class="form-label">command</label>
@@ -282,5 +338,6 @@
     </div>
 
     <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/cron.js"></script>
   </body>
 </html>
