@@ -7,6 +7,7 @@ const dayOfWeek = document.getElementById("dayOfWeek");
 const dayOfMonth = document.getElementById("dayOfMonth");
 
 const cronStringEl = document.getElementById("cronString");
+const addJobSchedule = document.getElementById("addJobSchedule");
 const cronTextEl = document.getElementById("cronText");
 
 // Fill dropdowns
@@ -43,6 +44,7 @@ function buildCron() {
       break;
   }
   cronStringEl.textContent = cron;
+  addJobSchedule.value = cron;
   try {
     cronTextEl.textContent = cronstrue.toString(cron);
   } catch {
