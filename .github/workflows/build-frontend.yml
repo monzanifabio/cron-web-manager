@@ -1,0 +1,48 @@
+# GitHub Action: Build Frontend on Commit
+# This workflow runs `npm run build` when changes are detected in the frontend directory.
+
+name: Build Frontend on Commit
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm install
+      - name: Build frontend
+        run: npm run build
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Remove old dist from repo
+        run: |
+          git rm -r --ignore-unmatch dist || true
+        working-directory: frontend
+      - name: Copy new dist to repo
+        run: |
+          cp -r dist ../frontend-dist-tmp
+        working-directory: frontend
+      - name: Replace dist in repo
+        run: |
+          rm -rf frontend/dist
+          mv frontend-dist-tmp frontend/dist
+      - name: Commit and push build output
+        run: |
+          git add frontend/dist
+          git commit -m "chore: update frontend build output [skip ci]" || echo "No changes to commit"
+          git push
