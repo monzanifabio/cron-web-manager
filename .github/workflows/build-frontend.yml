@@ -35,7 +35,8 @@ jobs:
         working-directory: frontend
       - name: Copy new dist to repo
         run: |
-          cp -r dist ../backend/dist
+          mkdir -p ../backend/dist
+          cp -r dist/* ../backend/dist/
         working-directory: frontend
       - name: Replace dist in repo
         run: |
