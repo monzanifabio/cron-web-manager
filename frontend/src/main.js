@@ -1,3 +1,10 @@
+// Set app version in footer
+document.addEventListener("DOMContentLoaded", () => {
+  const versionElement = document.getElementById("appVersion");
+  if (versionElement) {
+    versionElement.textContent = `v${__APP_VERSION__}`;
+  }
+});
 import "/src/style.scss";
 import * as bootstrap from "bootstrap";
 import cronValidate from "cron-validate";

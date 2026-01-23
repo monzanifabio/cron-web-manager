@@ -1,4 +1,9 @@
 import { resolve } from "path";
+import { readFileSync } from "fs";
+
+// Read version from package.json
+const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf-8"));
+const appVersion = pkg.version;
 
 export default {
   root: resolve(__dirname),
@@ -17,5 +22,8 @@ export default {
         silenceDeprecations: ["import", "mixed-decls", "color-functions", "global-builtin"],
       },
     },
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
   },
 };
