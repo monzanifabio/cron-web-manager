@@ -4,6 +4,7 @@ export default {
   root: resolve(__dirname),
   build: {
     outDir: "../backend/dist",
+    emptyOutDir: true,
   },
   server: {
     host: "0.0.0.0",
