@@ -172,7 +172,8 @@ document.getElementById("confirmDelete").addEventListener("click", async () => {
     document.querySelector("[data-refresh]").focus();
     modals.delete.hide(); // Changed from deleteModal.hide()
     jobToDelete = null;
-    loadJobs();
+    await loadJobs();
+    await renderCronTimeline();
   }
 });
 document.getElementById("addForm").addEventListener("submit", async (e) => {
@@ -211,7 +212,8 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   document.querySelector("[data-refresh]").focus();
   modals.add.hide();
   form.reset();
-  loadJobs();
+  await loadJobs();
+  await renderCronTimeline();
 });
 
 // Modify the editJob function to include enabled state
@@ -265,7 +267,8 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   document.querySelector("[data-refresh]").focus();
   modals.edit.hide();
   form.reset();
-  loadJobs();
+  await loadJobs();
+  await renderCronTimeline();
 });
 
 // Add event listener for refresh button
@@ -273,6 +276,54 @@ document.querySelector("[data-refresh]").addEventListener("click", loadJobs);
 
 // Initial load
 loadJobs();
+
+// Timeline rendering for cron jobs
+async function renderCronTimeline() {
+  const timelineDiv = document.getElementById("cron-timeline");
+  if (!timelineDiv) return;
+  timelineDiv.innerHTML = "";
+
+  // Draw the timeline line
+  const line = document.createElement("div");
+  line.className = "cron-timeline-line";
+  timelineDiv.appendChild(line);
+
+  // Draw hour labels (1 to 24)
+  for (let h = 1; h <= 24; h++) {
+    const label = document.createElement("div");
+    label.className = "cron-timeline-label";
+    label.textContent = h === 24 ? "midnight" : h;
+    label.style.left = `${((h - 1) / 23) * 100}%`;
+    timelineDiv.appendChild(label);
+  }
+
+  // Fetch jobs
+  const res = await fetch(`${API_BASE}/cron-jobs`);
+  const jobs = await res.json();
+
+  // Place dots for each job
+  jobs.forEach((job) => {
+    // Parse schedule to get hour and minute
+    // Assume schedule is in standard cron format: "m h * * *"
+    const parts = job.schedule.split(" ");
+    if (parts.length < 2) return;
+    let minute = parseInt(parts[0], 10);
+    let hour = parseInt(parts[1], 10);
+    if (isNaN(hour) || isNaN(minute)) return;
+    // Position: from 1 to 24 (midnight)
+    let pos = ((hour - 1 + minute / 60) / 23) * 100;
+    // Clamp between 0 and 100
+    pos = Math.max(0, Math.min(100, pos));
+    const dot = document.createElement("div");
+    dot.className = "cron-timeline-dot";
+    dot.style.left = `${pos}%`;
+    dot.title = `${job.schedule} - ${job.comment || job.command}`;
+    timelineDiv.appendChild(dot);
+  });
+}
+
+// Render timeline on load
+document.addEventListener("DOMContentLoaded", renderCronTimeline);
 
 async function loadLogs(logPath, lines = 100) {
   if (!logPath) {
@@ -433,7 +484,8 @@ document.getElementById("confirmImportJobs").addEventListener("click", async () 
     jobsToImport = [];
     document.querySelector("[data-refresh]").focus();
     bootstrap.Modal.getInstance(document.getElementById("importPreviewModal")).hide();
-    loadJobs();
+    await loadJobs();
+    await renderCronTimeline();
   }
 });
 
