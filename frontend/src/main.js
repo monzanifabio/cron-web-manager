@@ -315,6 +315,32 @@ async function exportJobs() {
 document.getElementById("exportJobs").addEventListener("click", exportJobs);
 
 // Import cron jobs
+// Modal for import preview
+const importModalHtml = `
+<div class="modal fade" id="importPreviewModal" tabindex="-1" aria-labelledby="importPreviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="importPreviewModalLabel">Import Cron Jobs Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="importJobsList"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmImportJobs">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+if (!document.getElementById("importPreviewModal")) {
+  document.body.insertAdjacentHTML("beforeend", importModalHtml);
+}
+
+let jobsToImport = [];
+
 async function importJobs() {
   const input = document.createElement("input");
   input.type = "file";
@@ -327,13 +353,24 @@ async function importJobs() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
-        const jobs = JSON.parse(event.target.result);
-        await fetch(`${API_BASE}/cron-jobs/import`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ jobs }),
+        const importedJobs = JSON.parse(event.target.result);
+        // Fetch current jobs to check for duplicates
+        const res = await fetch(`${API_BASE}/cron-jobs`);
+        const existingJobs = await res.json();
+        // Filter out duplicates (same schedule and command)
+        const filteredJobs = importedJobs.filter((newJob) => {
+          return !existingJobs.some((job) => job.schedule === newJob.schedule && job.command === newJob.command);
         });
-        loadJobs();
+        if (filteredJobs.length === 0) {
+          alert("No new jobs to import. All jobs are duplicates.");
+          return;
+        }
+        jobsToImport = filteredJobs;
+        // Render jobs in modal
+        const jobsList = filteredJobs.map((job, i) => `<li><strong>${job.schedule}</strong> <span class="text-muted">${job.command}</span>${job.comment ? ` <span class="text-info">(${job.comment})</span>` : ""}</li>`).join("");
+        document.getElementById("importJobsList").innerHTML = `<ul>${jobsList}</ul>`;
+        const importPreviewModal = new bootstrap.Modal(document.getElementById("importPreviewModal"));
+        importPreviewModal.show();
       } catch (error) {
         console.error("Error importing jobs:", error);
         alert("Failed to import jobs. Please check the file format.");
@@ -343,6 +380,20 @@ async function importJobs() {
   };
   input.click();
 }
+
+document.getElementById("confirmImportJobs").addEventListener("click", async () => {
+  if (jobsToImport.length > 0) {
+    await fetch(`${API_BASE}/cron-jobs/import`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jobs: jobsToImport }),
+    });
+    jobsToImport = [];
+    document.querySelector("[data-refresh]").focus();
+    bootstrap.Modal.getInstance(document.getElementById("importPreviewModal")).hide();
+    loadJobs();
+  }
+});
 
 // Add event listener for import button
 document.getElementById("importJobs").addEventListener("click", importJobs);
