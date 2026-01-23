@@ -20,14 +20,15 @@ app.include_router(router)
 # Health check and hostname routes remain the same
 @app.get("/api/health")
 def health_check():
-    # ... (your existing health check code)
     health = {"status": "ok"}
     problems = []
     try:
-        if not router:
-            problems.append("Router not loaded")
+        # Actually test crontab access
+        from crontab import CronTab
+        cron = CronTab(user=True)
+        list(cron)  # Verify we can read it
     except Exception as e:
-        problems.append(f"Router check failed: {str(e)}")
+        problems.append(f"Crontab access failed: {str(e)}")
     if problems:
         health["status"] = "error"
         health["problems"] = problems
@@ -61,8 +62,11 @@ if os.path.exists(assets_path):
 # This is essential for client-side routing in SPAs.
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_frontend(full_path: str):
+    from fastapi import HTTPException
+    # Don't catch API routes
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API endpoint not found")
     index_path = os.path.join(DIST_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    # You can return a 404 error if the frontend is not built/found
-    return {"error": "Frontend not found. Did you run 'npm run build'?"}, 404
+    raise HTTPException(status_code=404, detail="Frontend not found")
