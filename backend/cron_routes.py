@@ -26,15 +26,20 @@ class CronJobUpdate(CronJobBase):
 
 # List jobs
 @router.get("")
-@router.get("/")
 def list_cron_jobs():
     return crontab_utils.get_crontab()
 
 # Add job
 @router.post("")
-@router.post("/")
 def add_cron_job(job: CronJobCreate):
     try:
+        # Validate schedule format before adding
+        from crontab import CronTab
+        test_cron = CronTab()
+        try:
+            test_cron.new(command="echo", comment="test").setall(job.schedule)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid cron schedule format")
         crontab_utils.add_cron_job(job.dict())
         return {"status": "added"}
     except ValueError as e:
@@ -42,9 +47,15 @@ def add_cron_job(job: CronJobCreate):
 
 # Update job
 @router.put("")
-@router.put("/")
 def update_cron_job(job: CronJobUpdate):
     try:
+        # Validate schedule format before updating
+        from crontab import CronTab
+        test_cron = CronTab()
+        try:
+            test_cron.new(command="echo", comment="test").setall(job.schedule)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid cron schedule format")
         crontab_utils.update_cron_job(job.index, job.dict())
         return {"status": "updated"}
     except IndexError:
@@ -64,22 +75,27 @@ def delete_cron_job(index: int):
 # Get logs
 @router.get("/logs")
 def get_logs(
-    path: str = Query(..., description="Full path to the log file"), 
+    path: str = Query(..., description="Full path to the log file"),
     lines: Optional[int] = Query(None, description="Number of lines to return")
 ):
     try:
+        # SECURITY: Validate the path is actually from a cron job
+        current_jobs = crontab_utils.get_crontab()
+        valid_log_paths = {job['log_path'] for job in current_jobs if job['log_path']}
+        if path not in valid_log_paths:
+            raise HTTPException(
+                status_code=403,
+                detail="Can only read log files from configured cron jobs"
+            )
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail=f"File not found: {path}")
         if not os.path.isfile(path):
             raise HTTPException(status_code=400, detail=f"Path is not a file: {path}")
-
         resolved_path = Path(path).resolve()
-
         cmd = ["tail"]
         if lines is not None and lines > 0:
             cmd.extend(["-n", str(lines)])
         cmd.append(str(resolved_path))
-
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -87,7 +103,6 @@ def get_logs(
             check=True,
             timeout=30
         )
-
         return {
             "success": True,
             "path": str(resolved_path),
