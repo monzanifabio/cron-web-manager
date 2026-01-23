@@ -1,6 +1,19 @@
+import shutil
+import tempfile
+def validate_command(command: str) -> None:
+    """Basic command validation to prevent obvious issues."""
+    dangerous_patterns = [
+        r'rm\s+-rf\s+/',  # Recursive delete from root
+        r':\(\)\{.*\|.*&.*\};:',  # Fork bomb
+        r'mkfs\.',  # Filesystem formatting
+    ]
+    for pattern in dangerous_patterns:
+        if re.search(pattern, command):
+            raise ValueError(f"Command contains potentially dangerous pattern: {pattern}")
 from crontab import CronTab
 from typing import List, Dict
 import re
+import os
 
 def get_crontab() -> List[dict]:
     """Returns the current user's crontab as a list of dictionaries containing job details."""
@@ -20,26 +33,41 @@ def get_crontab() -> List[dict]:
     return jobs
 
 def write_crontab(lines: List[str]) -> None:
-    """Writes a new crontab from a list of lines."""
+    """Writes a new crontab from a list of lines, with backup and rollback."""
     cron = CronTab(user=True)
-    cron.remove_all()
-    for line in lines:
-        if line.strip():  # Skip empty lines
-            cron.new(command=line)
-    cron.write()
+    # Backup current crontab
+    backup_fd, backup_path = tempfile.mkstemp(prefix="crontab_backup_")
+    try:
+        with open(backup_path, "w") as backup_file:
+            backup_file.write(str(cron))
+        cron.remove_all()
+        for line in lines:
+            if line.strip():  # Skip empty lines
+                cron.new(command=line)
+        cron.write()
+    except Exception as e:
+        # Rollback on failure
+        with open(backup_path, "r") as backup_file:
+            cron = CronTab(tab=backup_file.read(), user=True)
+            cron.write()
+        raise RuntimeError(f"Failed to write crontab, rolled back. Error: {e}")
+    finally:
+        try:
+            os.close(backup_fd)
+            os.remove(backup_path)
+        except Exception:
+            pass
 
 def add_cron_job(job_data: Dict) -> None:
-    """Adds a new cron job from structured data."""
+    """Adds a new cron job from structured data, with validation."""
+    validate_command(job_data["command"])
     cron = CronTab(user=True)
     job = cron.new(command=job_data["command"], comment=job_data["comment"])
     job.setall(job_data["schedule"])
-    
     if not job.is_valid():
         raise ValueError("Invalid cron schedule")
-    
     if not job_data["enabled"]:
         job.enable(False)
-    
     cron.write()
 
 def remove_cron_job(index: int) -> None:
@@ -53,28 +81,37 @@ def remove_cron_job(index: int) -> None:
         raise IndexError("Invalid cron job index.")
 
 def update_cron_job(index: int, job_data: Dict) -> None:
-    """Updates an existing cron job with structured data."""
+    """Updates an existing cron job while preserving its position and with validation."""
     cron = CronTab(user=True)
     jobs = list(cron)
-    
-    if 0 <= index < len(jobs):
-        old_job = jobs[index]
-        cron.remove(old_job)
-        
-        job = cron.new(command=job_data["command"], comment=job_data["comment"])
-        job.setall(job_data["schedule"])
-        
-        if not job.is_valid():
-            # Restore the old job if the new one is invalid
-            cron.new(command=old_job.command, comment=old_job.comment)
-            raise ValueError("Invalid cron schedule")
-        
-        if not job_data["enabled"]:
-            job.enable(False)
-        
-        cron.write()
-    else:
+    if not (0 <= index < len(jobs)):
         raise IndexError("Invalid cron job index")
+    job = jobs[index]
+    validate_command(job_data["command"])
+    # Backup current crontab
+    backup_fd, backup_path = tempfile.mkstemp(prefix="crontab_backup_")
+    try:
+        with open(backup_path, "w") as backup_file:
+            backup_file.write(str(cron))
+        job.set_command(job_data["command"])
+        job.set_comment(job_data["comment"])
+        job.setall(job_data["schedule"])
+        if not job.is_valid():
+            raise ValueError("Invalid cron schedule")
+        job.enable(job_data["enabled"])
+        cron.write()
+    except Exception as e:
+        # Rollback on failure
+        with open(backup_path, "r") as backup_file:
+            cron = CronTab(tab=backup_file.read(), user=True)
+            cron.write()
+        raise RuntimeError(f"Failed to update cron job, rolled back. Error: {e}")
+    finally:
+        try:
+            os.close(backup_fd)
+            os.remove(backup_path)
+        except Exception:
+            pass
 
 def duplicate_cron_job(index: int) -> None:
     """Duplicates an existing cron job by index."""
@@ -89,8 +126,28 @@ def duplicate_cron_job(index: int) -> None:
     else:
         raise IndexError("Invalid cron job index.")
 
-# Example: extract log path from command (very basic)
+# Improved log path extraction to catch more patterns
 def extract_log_path(command: str) -> str:
-    # Match '>> /path/to/log.log' or '> /path/to/log.log', but not '2>' or '2>&1'
-    match = re.search(r'(?:>>|>)\s+([^\s]+\.log)', command)
-    return match.group(1) if match else ""
+    # Try to match common logging patterns
+    # 1. > file.log, >> file.log, 2> file.log, 2>&1 file.log, &> file.log
+    patterns = [
+        r'(?:>>|>|2>|2>&1|&>)\s*([^\s]+\.log)',
+        r'tee\s+([^\s]+\.log)'
+    ]
+    for pat in patterns:
+        match = re.search(pat, command)
+        if match:
+            return match.group(1)
+    return ""
+
+def import_cron_jobs(jobs: List[Dict]) -> None:
+    """Imports cron jobs from a list of dictionaries."""
+    cron = CronTab(user=True)
+    for job_data in jobs:
+        job = cron.new(command=job_data["command"], comment=job_data.get("comment", ""))
+        job.setall(job_data["schedule"])
+        if not job.is_valid():
+            raise ValueError(f"Invalid cron schedule: {job_data['schedule']}")
+        if not job_data.get("enabled", True):
+            job.enable(False)
+    cron.write()

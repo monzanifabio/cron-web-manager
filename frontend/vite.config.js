@@ -3,7 +3,7 @@ import { resolve } from "path";
 export default {
   root: resolve(__dirname),
   build: {
-    outDir: "dist",
+    outDir: "../backend/dist",
   },
   server: {
     host: "0.0.0.0",

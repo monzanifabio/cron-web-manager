@@ -2,7 +2,7 @@ import "/src/style.scss";
 import * as bootstrap from "bootstrap";
 import cronValidate from "cron-validate";
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "/api";
 
 // Initialize modals with focus options
 const modals = {
@@ -293,3 +293,53 @@ async function duplicateJob(index) {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+// Export cron jobs
+async function exportJobs() {
+  const res = await fetch(`${API_BASE}/cron-jobs/export`);
+  const jobs = await res.json();
+  const data = JSON.stringify(jobs, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "cronjobs_backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Add event listener for export button
+document.getElementById("exportJobs").addEventListener("click", exportJobs);
+
+// Import cron jobs
+async function importJobs() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const jobs = JSON.parse(event.target.result);
+        await fetch(`${API_BASE}/cron-jobs/import`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobs }),
+        });
+        loadJobs();
+      } catch (error) {
+        console.error("Error importing jobs:", error);
+        alert("Failed to import jobs. Please check the file format.");
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// Add event listener for import button
+document.getElementById("importJobs").addEventListener("click", importJobs);

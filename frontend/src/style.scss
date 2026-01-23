@@ -1,7 +1,10 @@
 @import "bootstrap/scss/bootstrap";
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap");
 
 :root {
   --accent: #49e188;
+  --font-primary: "Geist", sans-serif;
+  --font-mono: "Geist Mono", monospace;
 }
 // Custom styles that override Bootstrap
 * {
@@ -18,7 +21,7 @@ body {
 }
 
 body {
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-primary);
 }
 
 .small {
@@ -29,11 +32,11 @@ body {
 }
 
 .font-console {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-mono);
 }
 
 .table {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   background-color: transparent;
 }
@@ -50,7 +53,7 @@ td {
 }
 
 .btn-main {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-mono);
   text-transform: uppercase;
   font-size: 0.8rem;
   border-radius: 0px;
@@ -69,7 +72,7 @@ td {
 }
 
 .btn-negative {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-mono);
   text-transform: uppercase;
   font-size: 0.8rem;
   border-radius: 0px;
@@ -83,7 +86,7 @@ td {
   border-color: #ae4d41;
 }
 .btn-dark {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-mono);
   text-transform: uppercase;
   font-size: 0.8rem;
   border-radius: 0px;
@@ -106,6 +109,9 @@ td {
 }
 
 .form-control {
+  border-radius: 0px;
+}
+.form-select {
   border-radius: 0px;
 }
 
@@ -138,7 +144,7 @@ td {
 }
 
 .form-label {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-mono);
   text-transform: uppercase;
   font-size: 0.8rem;
   margin-bottom: 4px;
@@ -235,4 +241,9 @@ td {
   background-color: var(--bs-dark);
   z-index: 10;
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.preview {
+  font-family: var(--font-mono);
+  background-color: #2b3134;
 }
