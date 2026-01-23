@@ -82,7 +82,7 @@ async function loadJobs() {
     const row = `<tr>
         <td class="text-nowrap">${job.schedule}</td>
         <td>
-        ${job.comment ? `<div>${job.comment}</div>` : ""}
+        ${job.comment ? `<div class="text-uppercase">${job.comment}</div>` : ""}
           <div class="text-muted small">${job.command}</div>
         </td>
         <td>
