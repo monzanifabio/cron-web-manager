@@ -2,7 +2,7 @@ import "/src/style.scss";
 import * as bootstrap from "bootstrap";
 import cronValidate from "cron-validate";
 
-const API_BASE = "/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // Initialize modals with focus options
 const modals = {
