@@ -328,8 +328,8 @@ const importModalHtml = `
         <div id="importJobsList"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="confirmImportJobs">Import</button>
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-main" id="confirmImportJobs">Import</button>
       </div>
     </div>
   </div>
@@ -366,9 +366,48 @@ async function importJobs() {
           return;
         }
         jobsToImport = filteredJobs;
-        // Render jobs in modal
-        const jobsList = filteredJobs.map((job, i) => `<li><strong>${job.schedule}</strong> <span class="text-muted">${job.command}</span>${job.comment ? ` <span class="text-info">(${job.comment})</span>` : ""}</li>`).join("");
-        document.getElementById("importJobsList").innerHTML = `<ul>${jobsList}</ul>`;
+        // Render jobs in modal as a table
+        const jobsTableRows = filteredJobs
+          .map(
+            (job, i) => `
+          <tr>
+            <td class="text-nowrap">${job.schedule}</td>
+            <td>
+              ${job.comment ? `<div class="text-uppercase">${job.comment}</div>` : ""}
+              <div class="text-muted small">${job.command}</div>
+            </td>
+            <td>
+              <span class="badge ${job.enabled ? "badge-success" : "badge-danger"}">
+                ${job.enabled ? "Active" : "Inactive"}
+              </span>
+            </td>
+            <td>
+              <!-- No actions for import preview -->
+            </td>
+          </tr>
+        `,
+          )
+          .join("");
+        document.getElementById("importJobsList").innerHTML = `
+          <table class="table table-dark mb-0">
+            <thead>
+              <tr>
+                <th class="text-uppercase">Schedule</th>
+                <th class="text-uppercase">Command</th>
+                <th class="text-uppercase">Status</th>
+                <th class="text-uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${jobsTableRows}
+            </tbody>
+          </table>
+        `;
+        // Update import button text with job count
+        const importBtn = document.getElementById("confirmImportJobs");
+        if (importBtn) {
+          importBtn.textContent = `Import ${jobsToImport.length}`;
+        }
         const importPreviewModal = new bootstrap.Modal(document.getElementById("importPreviewModal"));
         importPreviewModal.show();
       } catch (error) {
