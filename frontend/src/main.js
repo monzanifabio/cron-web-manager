@@ -310,6 +310,9 @@ async function renderCronTimeline() {
     let minute = parseInt(parts[0], 10);
     let hour = parseInt(parts[1], 10);
     if (isNaN(hour) || isNaN(minute)) return;
+    // Print the exact time for debugging
+    const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+    console.log(`Job: ${job.comment || job.command} | Schedule: ${job.schedule} | Time: ${timeStr}`);
     // Position: from 1 to 24 (midnight)
     let pos = ((hour - 1 + minute / 60) / 23) * 100;
     // Clamp between 0 and 100
