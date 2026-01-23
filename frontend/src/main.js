@@ -381,9 +381,6 @@ async function importJobs() {
                 ${job.enabled ? "Active" : "Inactive"}
               </span>
             </td>
-            <td>
-              <!-- No actions for import preview -->
-            </td>
           </tr>
         `,
           )
@@ -395,7 +392,6 @@ async function importJobs() {
                 <th class="text-uppercase">Schedule</th>
                 <th class="text-uppercase">Command</th>
                 <th class="text-uppercase">Status</th>
-                <th class="text-uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
