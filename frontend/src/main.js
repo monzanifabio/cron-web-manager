@@ -232,7 +232,8 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
 window.editJob = function (index, schedule, command, enabled, hasLogging) {
   const form = document.getElementById("editForm");
   form.index.value = index;
-  form.schedule.value = schedule;
+  // Always convert @hourly/@monthly/etc to classic cron syntax for editing
+  form.schedule.value = convertSpecialToClassic(schedule);
   form.command.value = command;
   form.enabled.checked = enabled;
   form.has_logging.checked = hasLogging;
