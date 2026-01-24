@@ -62,8 +62,9 @@ def add_cron_job(job_data: Dict) -> None:
     """Adds a new cron job from structured data, with validation."""
     validate_command(job_data["command"])
     cron = CronTab(user=True)
+    schedule = convert_special_schedules(job_data["schedule"])
     job = cron.new(command=job_data["command"], comment=job_data["comment"])
-    job.setall(job_data["schedule"])
+    job.setall(schedule)
     if not job.is_valid():
         raise ValueError("Invalid cron schedule")
     if not job_data["enabled"]:
@@ -88,6 +89,7 @@ def update_cron_job(index: int, job_data: Dict) -> None:
         raise IndexError("Invalid cron job index")
     job = jobs[index]
     validate_command(job_data["command"])
+    schedule = convert_special_schedules(job_data["schedule"])
     # Backup current crontab
     backup_fd, backup_path = tempfile.mkstemp(prefix="crontab_backup_")
     try:
@@ -95,7 +97,7 @@ def update_cron_job(index: int, job_data: Dict) -> None:
             backup_file.write(str(cron))
         job.set_command(job_data["command"])
         job.set_comment(job_data["comment"])
-        job.setall(job_data["schedule"])
+        job.setall(schedule)
         if not job.is_valid():
             raise ValueError("Invalid cron schedule")
         job.enable(job_data["enabled"])
@@ -144,10 +146,24 @@ def import_cron_jobs(jobs: List[Dict]) -> None:
     """Imports cron jobs from a list of dictionaries."""
     cron = CronTab(user=True)
     for job_data in jobs:
+        schedule = convert_special_schedules(job_data["schedule"])
         job = cron.new(command=job_data["command"], comment=job_data.get("comment", ""))
-        job.setall(job_data["schedule"])
+        job.setall(schedule)
         if not job.is_valid():
-            raise ValueError(f"Invalid cron schedule: {job_data['schedule']}")
+            raise ValueError(f"Invalid cron schedule: {schedule}")
         if not job_data.get("enabled", True):
             job.enable(False)
     cron.write()
+
+# Helper to convert @hourly/@monthly to classic cron syntax
+def convert_special_schedules(schedule: str) -> str:
+    mapping = {
+        "@hourly": "0 * * * *",
+        "@monthly": "0 0 1 * *",
+        "@yearly": "0 0 1 1 *",
+        "@annually": "0 0 1 1 *",
+        "@weekly": "0 0 * * 0",
+        "@daily": "0 0 * * *",
+        "@midnight": "0 0 * * *",
+    }
+    return mapping.get(schedule.strip(), schedule)
