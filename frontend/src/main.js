@@ -1,3 +1,16 @@
+// Utility to convert @hourly/@monthly and similar to classic cron syntax
+function convertSpecialToClassic(schedule) {
+  const mapping = {
+    "@hourly": "0 * * * *",
+    "@monthly": "0 0 1 * *",
+    "@yearly": "0 0 1 1 *",
+    "@annually": "0 0 1 1 *",
+    "@weekly": "0 0 * * 0",
+    "@daily": "0 0 * * *",
+    "@midnight": "0 0 * * *",
+  };
+  return mapping[schedule.trim()] || schedule;
+}
 // Set app version in footer
 document.addEventListener("DOMContentLoaded", () => {
   const versionElement = document.getElementById("appVersion");
@@ -180,7 +193,8 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   const form = e.target;
 
   // Validate cron schedule
-  const cronResult = cronValidate(form.schedule.value);
+  const schedule = convertSpecialToClassic(form.schedule.value);
+  const cronResult = cronValidate(schedule);
   if (!cronResult.isValid()) {
     alert("Invalid cron schedule!");
     form.schedule.focus();
@@ -194,7 +208,7 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   }
 
   const payload = {
-    schedule: form.schedule.value,
+    schedule,
     command,
     enabled: form.enabled.checked,
     comment: form.comment?.value || "",
@@ -231,7 +245,8 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   const form = e.target;
 
   // Validate cron schedule
-  const cronResult = cronValidate(form.schedule.value);
+  const schedule = convertSpecialToClassic(form.schedule.value);
+  const cronResult = cronValidate(schedule);
   if (!cronResult.isValid()) {
     alert("Invalid cron schedule!");
     form.schedule.focus();
@@ -248,7 +263,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 
   const payload = {
     index: parseInt(form.index.value),
-    schedule: form.schedule.value,
+    schedule,
     command,
     enabled: form.enabled.checked,
     comment: form.comment?.value || "",
@@ -425,10 +440,15 @@ async function importJobs() {
 
 document.getElementById("confirmImportJobs").addEventListener("click", async () => {
   if (jobsToImport.length > 0) {
+    // Convert any @hourly/@monthly in imported jobs to classic syntax
+    const jobsConverted = jobsToImport.map((job) => ({
+      ...job,
+      schedule: convertSpecialToClassic(job.schedule),
+    }));
     await fetch(`${API_BASE}/cron-jobs/import`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobs: jobsToImport }),
+      body: JSON.stringify({ jobs: jobsConverted }),
     });
     jobsToImport = [];
     document.querySelector("[data-refresh]").focus();
