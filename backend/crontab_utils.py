@@ -21,8 +21,10 @@ def get_crontab() -> List[dict]:
     jobs = []
     for job in cron:
         command = str(job.command)
+        # Always convert @hourly/@monthly/etc to classic cron syntax for frontend
+        schedule = convert_special_schedules(str(job.slices))
         jobs.append({
-            'schedule': str(job.slices),
+            'schedule': schedule,
             'command': command,
             'enabled': bool(job.is_enabled()),
             'comment': str(job.comment),
