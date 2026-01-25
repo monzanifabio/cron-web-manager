@@ -166,7 +166,10 @@ async function loadJobs() {
       deleteJob(parseInt(index));
     } else if (action === "edit") {
       e.preventDefault();
-      editJob(parseInt(index), target.dataset.schedule, target.dataset.command, target.dataset.enabled === "true", target.dataset.hasLogging === "true");
+      // Try to get the comment from the row (if present)
+      const commentCell = target.closest("tr").querySelector(".text-uppercase");
+      const comment = commentCell ? commentCell.textContent.trim() : "";
+      editJob(parseInt(index), target.dataset.schedule, target.dataset.command, target.dataset.enabled === "true", target.dataset.hasLogging === "true", comment);
     }
   });
 }
@@ -237,6 +240,12 @@ window.editJob = function (index, schedule, command, enabled, hasLogging) {
   form.command.value = command;
   form.enabled.checked = enabled;
   form.has_logging.checked = hasLogging;
+  // Set comment if present
+  if (arguments.length > 5) {
+    form.comment.value = arguments[5] || "";
+  } else {
+    form.comment.value = "";
+  }
   modals.edit.show();
 };
 
