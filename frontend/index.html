@@ -266,6 +266,8 @@
             <input id="addJobSchedule" class="form-control mb-2" name="schedule" placeholder="* * * * *" required hidden />
             <label class="form-label">command</label>
             <input class="form-control mb-2" name="command" placeholder="echo Hello" required />
+            <label class="form-label">comment</label>
+            <input class="form-control mb-2" name="comment" placeholder="Job comment (optional)" />
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" id="addJobEnabled" name="enabled" checked />
               <label class="form-check-label" for="addJobEnabled">Active</label>
@@ -299,7 +301,7 @@
             <label class="form-label">command</label>
             <input class="form-control mb-2" name="command" placeholder="echo Hello" required />
             <label class="form-label">comment</label>
-            <input class="form-control mb-2" name="comment" placeholder="Job comment (optional)" />
+            <input class="form-control mb-2" name="comment" placeholder="Job comment (optional)" autocomplete="off" />
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" id="editJobEnabled" name="enabled" />
               <label class="form-check-label" for="editJobEnabled">Active</label>
