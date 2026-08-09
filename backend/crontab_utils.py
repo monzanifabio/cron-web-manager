@@ -1,5 +1,11 @@
-import shutil
+import os
+import re
 import tempfile
+from typing import Dict, List
+
+from crontab import CronTab
+
+
 def validate_command(command: str) -> None:
     """Basic command validation to prevent obvious issues."""
     dangerous_patterns = [
@@ -10,10 +16,6 @@ def validate_command(command: str) -> None:
     for pattern in dangerous_patterns:
         if re.search(pattern, command):
             raise ValueError(f"Command contains potentially dangerous pattern: {pattern}")
-from crontab import CronTab
-from typing import List, Dict
-import re
-import os
 
 def get_crontab() -> List[dict]:
     """Returns the current user's crontab as a list of dictionaries containing job details."""
@@ -33,32 +35,6 @@ def get_crontab() -> List[dict]:
             'log_path': extract_log_path(command)
         })
     return jobs
-
-def write_crontab(lines: List[str]) -> None:
-    """Writes a new crontab from a list of lines, with backup and rollback."""
-    cron = CronTab(user=True)
-    # Backup current crontab
-    backup_fd, backup_path = tempfile.mkstemp(prefix="crontab_backup_")
-    try:
-        with open(backup_path, "w") as backup_file:
-            backup_file.write(str(cron))
-        cron.remove_all()
-        for line in lines:
-            if line.strip():  # Skip empty lines
-                cron.new(command=line)
-        cron.write()
-    except Exception as e:
-        # Rollback on failure
-        with open(backup_path, "r") as backup_file:
-            cron = CronTab(tab=backup_file.read(), user=True)
-            cron.write()
-        raise RuntimeError(f"Failed to write crontab, rolled back. Error: {e}")
-    finally:
-        try:
-            os.close(backup_fd)
-            os.remove(backup_path)
-        except Exception:
-            pass
 
 def add_cron_job(job_data: Dict) -> None:
     """Adds a new cron job from structured data, with validation."""

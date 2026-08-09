@@ -1,0 +1,17 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Set API_KEY to require authentication. Leave empty to skip auth (dev mode).
+      - API_KEY=${API_KEY:-}
+    restart: unless-stopped
+    # IMPORTANT: crontab access from inside a container requires sharing the
+    # host's cron spool. On Linux, uncomment and adjust the volume below:
+    #
+    # volumes:
+    #   - /var/spool/cron:/var/spool/cron
+    #
+    # On macOS, cron jobs are managed by launchd. This Docker setup is primarily
+    # intended for Linux hosts where python-crontab can manage user crontabs.

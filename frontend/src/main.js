@@ -35,6 +35,9 @@ const modals = {
   delete: new bootstrap.Modal(document.getElementById("deleteModal"), {
     focus: false,
   }),
+  log: new bootstrap.Modal(document.getElementById("logModal"), {
+    focus: false,
+  }),
 };
 
 // Add modal hide event listeners
@@ -48,7 +51,6 @@ async function loadHostname() {
   try {
     const res = await fetch(`${API_BASE}/hostname`);
     const data = await res.json();
-    console.log(data);
     const hostnameElement = document.getElementById("hostname");
     if (data.hostname) {
       hostnameElement.textContent = `Hostname: ${data.hostname}`;
@@ -67,7 +69,6 @@ async function loadHealthStatus() {
   try {
     const res = await fetch(`${API_BASE}/health`);
     const data = await res.json();
-    console.log(data);
     const healthStatusElement = document.getElementById("healthStatus");
     const healthIndicator = document.querySelector(".health-indicator");
     if (data.status === "ok") {
@@ -90,16 +91,33 @@ async function loadHealthStatus() {
 }
 loadHealthStatus();
 
-async function loadJobs() {
-  const res = await fetch(`${API_BASE}/cron-jobs`);
-  const jobs = await res.json();
+function showAppError(message) {
+  const existing = document.getElementById("appError");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.id = "appError";
+  el.className = "alert alert-danger alert-dismissible fade show mt-2";
+  el.role = "alert";
+  el.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+  document.querySelector(".table-section").prepend(el);
+}
 
-  console.log(jobs);
-  countJobsByStatus(jobs);
+function countJobsByStatus(jobs) {
+  document.getElementById("totalJobs").innerHTML = jobs.length;
+  document.getElementById("activeJobs").innerHTML = jobs.filter((j) => j.enabled).length;
+  document.getElementById("inactiveJobs").innerHTML = jobs.filter((j) => !j.enabled).length;
+}
+
+async function loadJobs() {
   const tbody = document.getElementById("cronTableBody");
-  tbody.innerHTML = "";
-  jobs.forEach((job, index) => {
-    const row = `<tr>
+  try {
+    const res = await fetch(`${API_BASE}/cron-jobs`);
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const jobs = await res.json();
+    countJobsByStatus(jobs);
+    tbody.innerHTML = "";
+    jobs.forEach((job, index) => {
+      const row = `<tr>
         <td class="text-nowrap">${job.schedule}</td>
         <td>
         ${job.comment ? `<div class="text-uppercase">${job.comment}</div>` : ""}
@@ -116,7 +134,7 @@ async function loadJobs() {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C11.175 3 10.5 3.675 10.5 4.5C10.5 5.325 11.175 6 12 6C12.825 6 13.5 5.325 13.5 4.5C13.5 3.675 12.825 3 12 3ZM12 18C11.175 18 10.5 18.675 10.5 19.5C10.5 20.325 11.175 21 12 21C12.825 21 13.5 20.325 13.5 19.5C13.5 18.675 12.825 18 12 18ZM12 10.5C11.175 10.5 10.5 11.175 10.5 12C10.5 12.825 11.175 13.5 12 13.5C12.825 13.5 13.5 12.825 13.5 12C13.5 11.175 12.825 10.5 12 10.5Z"></path></svg>
             </button>
             <ul class="dropdown-menu">
-            <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="loadLogs('${job.log_path}')">
+            <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="log" data-log-path="${job.log_path}">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 22H5C3.34315 22 2 20.6569 2 19V3C2 2.44772 2.44772 2 3 2H17C17.5523 2 18 2.44772 18 3V15H22V19C22 20.6569 20.6569 22 19 22ZM18 17V19C18 19.5523 18.4477 20 19 20C19.5523 20 20 19.5523 20 19V17H18ZM16 20V4H4V19C4 19.5523 4.44772 20 5 20H16ZM6 7H14V9H6V7ZM6 11H14V13H6V11ZM6 15H11V17H6V15Z"></path></svg>
             View logs</a></li>
             <li>
@@ -135,44 +153,44 @@ async function loadJobs() {
           </div>
         </td>
       </tr>`;
-    tbody.insertAdjacentHTML("beforeend", row);
-  });
-
-  function countJobsByStatus(jobs) {
-    // Update total jobs count
-    const totalJobsElement = document.getElementById("totalJobs");
-    totalJobsElement.innerHTML = jobs.length > 0 ? `${jobs.length}` : "0";
-
-    // Update active jobs count
-    const activeJobsElement = document.getElementById("activeJobs");
-    activeJobsElement.innerHTML = jobs.filter((job) => job.enabled).length > 0 ? `${jobs.filter((job) => job.enabled).length}` : "0";
-
-    // Update inactive jobs count
-    const inactiveJobsElement = document.getElementById("inactiveJobs");
-    inactiveJobsElement.innerHTML = jobs.filter((job) => !job.enabled).length > 0 ? `${jobs.filter((job) => !job.enabled).length}` : "0";
+      tbody.insertAdjacentHTML("beforeend", row);
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-danger text-center py-3">Failed to load jobs. ${err.message}</td></tr>`;
   }
+}
 
-  // Add event listeners using delegation
-  document.getElementById("cronTableBody").addEventListener("click", async (e) => {
-    const target = e.target.closest("[data-action]");
-    if (!target) return;
-    const action = target.getAttribute("data-action");
-    const index = target.getAttribute("data-index");
-    if (action === "duplicate") {
+// Event delegation for table row actions (registered once at module scope)
+document.getElementById("cronTableBody").addEventListener("click", async (e) => {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  e.preventDefault();
+  const action = target.getAttribute("data-action");
+  const index = target.getAttribute("data-index");
+  if (action === "log") {
+    await loadLogs(target.dataset.logPath);
+  } else if (action === "duplicate") {
+    try {
       await duplicateJob(index);
       loadJobs();
-    } else if (action === "delete") {
-      e.preventDefault();
-      deleteJob(parseInt(index));
-    } else if (action === "edit") {
-      e.preventDefault();
-      // Try to get the comment from the row (if present)
-      const commentCell = target.closest("tr").querySelector(".text-uppercase");
-      const comment = commentCell ? commentCell.textContent.trim() : "";
-      editJob(parseInt(index), target.dataset.schedule, target.dataset.command, target.dataset.enabled === "true", target.dataset.hasLogging === "true", comment);
+    } catch (err) {
+      showAppError(`Failed to duplicate job: ${err.message}`);
     }
-  });
-}
+  } else if (action === "delete") {
+    deleteJob(parseInt(index));
+  } else if (action === "edit") {
+    const commentCell = target.closest("tr").querySelector(".text-uppercase");
+    const comment = commentCell ? commentCell.textContent.trim() : "";
+    editJob(
+      parseInt(index),
+      target.dataset.schedule,
+      target.dataset.command,
+      target.dataset.enabled === "true",
+      target.dataset.hasLogging === "true",
+      comment
+    );
+  }
+});
 
 let jobToDelete = null;
 
@@ -184,9 +202,14 @@ async function deleteJob(index) {
 // Add confirm delete handler
 document.getElementById("confirmDelete").addEventListener("click", async () => {
   if (jobToDelete !== null) {
-    await fetch(`${API_BASE}/cron-jobs/${jobToDelete}`, { method: "DELETE" });
+    try {
+      const res = await fetch(`${API_BASE}/cron-jobs/${jobToDelete}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    } catch (err) {
+      showAppError(`Failed to delete job: ${err.message}`);
+    }
     document.querySelector("[data-refresh]").focus();
-    modals.delete.hide(); // Changed from deleteModal.hide()
+    modals.delete.hide();
     jobToDelete = null;
     loadJobs();
   }
@@ -198,11 +221,12 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   // Validate cron schedule
   const schedule = convertSpecialToClassic(form.schedule.value);
   const cronResult = cronValidate(schedule);
+  const addScheduleError = document.getElementById("addScheduleError");
   if (!cronResult.isValid()) {
-    alert("Invalid cron schedule!");
-    form.schedule.focus();
+    addScheduleError.style.display = "block";
     return;
   }
+  addScheduleError.style.display = "none";
 
   let command = form.command.value;
   const hasLogging = form.has_logging?.checked || false;
@@ -215,15 +239,20 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     command,
     enabled: form.enabled.checked,
     comment: form.comment?.value || "",
-    valid: cronResult.isValid(),
     has_logging: hasLogging,
   };
 
-  await fetch(`${API_BASE}/cron-jobs`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch(`${API_BASE}/cron-jobs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+  } catch (err) {
+    showAppError(`Failed to add job: ${err.message}`);
+    return;
+  }
 
   document.querySelector("[data-refresh]").focus();
   modals.add.hide();
@@ -232,7 +261,7 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
 });
 
 // Modify the editJob function to include enabled state
-window.editJob = function (index, schedule, command, enabled, hasLogging) {
+function editJob(index, schedule, command, enabled, hasLogging, comment = "") {
   const form = document.getElementById("editForm");
   form.index.value = index;
   // Always convert @hourly/@monthly/etc to classic cron syntax for editing
@@ -240,14 +269,9 @@ window.editJob = function (index, schedule, command, enabled, hasLogging) {
   form.command.value = command;
   form.enabled.checked = enabled;
   form.has_logging.checked = hasLogging;
-  // Set comment if present
-  if (arguments.length > 5) {
-    form.comment.value = arguments[5] || "";
-  } else {
-    form.comment.value = "";
-  }
+  form.comment.value = comment;
   modals.edit.show();
-};
+}
 
 // Update the edit form submit handler
 document.getElementById("editForm").addEventListener("submit", async (e) => {
@@ -257,11 +281,13 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   // Validate cron schedule
   const schedule = convertSpecialToClassic(form.schedule.value);
   const cronResult = cronValidate(schedule);
+  const editScheduleInput = form.schedule;
   if (!cronResult.isValid()) {
-    alert("Invalid cron schedule!");
-    form.schedule.focus();
+    editScheduleInput.classList.add("is-invalid");
+    editScheduleInput.focus();
     return;
   }
+  editScheduleInput.classList.remove("is-invalid");
 
   let command = form.command.value.trim();
   const hasLogging = form.has_logging?.checked || false;
@@ -277,15 +303,20 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     command,
     enabled: form.enabled.checked,
     comment: form.comment?.value || "",
-    valid: cronResult.isValid(),
     has_logging: hasLogging,
   };
 
-  await fetch(`${API_BASE}/cron-jobs`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch(`${API_BASE}/cron-jobs`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+  } catch (err) {
+    showAppError(`Failed to update job: ${err.message}`);
+    return;
+  }
 
   document.querySelector("[data-refresh]").focus();
   modals.edit.hide();
@@ -300,27 +331,21 @@ document.querySelector("[data-refresh]").addEventListener("click", loadJobs);
 loadJobs();
 
 async function loadLogs(logPath, lines = 100) {
+  const logElement = document.getElementById("logOutput");
   if (!logPath) {
-    document.getElementById("logOutput").textContent = "No log file specified.";
-    const logModal = new bootstrap.Modal(document.getElementById("logModal"));
-    logModal.show();
+    logElement.textContent = "No log file specified.";
+    modals.log.show();
     return;
   }
-  const res = await fetch(`${API_BASE}/cron-jobs/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
-  const data = await res.json();
-  const logElement = document.getElementById("logOutput");
-  if (data.log) {
-    logElement.textContent = data.log;
-  } else {
-    logElement.textContent = data.error || "No log data available.";
+  try {
+    const res = await fetch(`${API_BASE}/cron-jobs/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
+    const data = await res.json();
+    logElement.textContent = data.log || data.error || "No log data available.";
+  } catch (err) {
+    logElement.textContent = `Error loading log: ${err.message}`;
   }
-  // Show the modal after loading the log
-  const logModal = new bootstrap.Modal(document.getElementById("logModal"));
-  logModal.show();
+  modals.log.show();
 }
-
-// Make loadLogs available globally
-window.loadLogs = loadLogs;
 
 async function duplicateJob(index) {
   await fetch(`${API_BASE}/cron-jobs/${index}/duplicate`, {
@@ -331,16 +356,21 @@ async function duplicateJob(index) {
 
 // Export cron jobs
 async function exportJobs() {
-  const res = await fetch(`${API_BASE}/cron-jobs/export`);
-  const jobs = await res.json();
-  const data = JSON.stringify(jobs, null, 2);
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "cronjobs_backup.json";
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const res = await fetch(`${API_BASE}/cron-jobs/export`);
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const jobs = await res.json();
+    const data = JSON.stringify(jobs, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "cronjobs_backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    showAppError(`Failed to export jobs: ${err.message}`);
+  }
 }
 
 // Add event listener for export button
@@ -394,7 +424,7 @@ async function importJobs() {
           return !existingJobs.some((job) => job.schedule === newJob.schedule && job.command === newJob.command);
         });
         if (filteredJobs.length === 0) {
-          alert("No new jobs to import. All jobs are duplicates.");
+          showAppError("No new jobs to import. All jobs already exist.");
           return;
         }
         jobsToImport = filteredJobs;
@@ -414,7 +444,7 @@ async function importJobs() {
               </span>
             </td>
           </tr>
-        `,
+        `
           )
           .join("");
         document.getElementById("importJobsList").innerHTML = `
@@ -440,7 +470,7 @@ async function importJobs() {
         importPreviewModal.show();
       } catch (error) {
         console.error("Error importing jobs:", error);
-        alert("Failed to import jobs. Please check the file format.");
+        showAppError("Failed to import jobs. Please check the file format.");
       }
     };
     reader.readAsText(file);

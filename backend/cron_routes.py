@@ -9,6 +9,18 @@ import crontab_utils
 
 router = APIRouter(prefix="/api/cron-jobs", tags=["Cron Jobs"])
 
+class CronJobInput(BaseModel):
+    schedule: str
+    command: str
+    enabled: bool
+    comment: str = ""
+
+class CronJobCreate(CronJobInput):
+    pass
+
+class CronJobUpdate(CronJobInput):
+    index: int
+
 class CronJobBase(BaseModel):
     schedule: str
     command: str
@@ -16,13 +28,7 @@ class CronJobBase(BaseModel):
     comment: str = ""
     valid: bool
     has_logging: bool
-    log_path: str = ""  # Add this line
-
-class CronJobCreate(CronJobBase):
-    pass
-
-class CronJobUpdate(CronJobBase):
-    index: int
+    log_path: str = ""
 
 # List jobs
 @router.get("")
@@ -33,13 +39,6 @@ def list_cron_jobs():
 @router.post("")
 def add_cron_job(job: CronJobCreate):
     try:
-        # Validate schedule format before adding
-        from crontab import CronTab
-        test_cron = CronTab()
-        try:
-            test_cron.new(command="echo", comment="test").setall(job.schedule)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid cron schedule format")
         crontab_utils.add_cron_job(job.dict())
         return {"status": "added"}
     except ValueError as e:
@@ -49,13 +48,6 @@ def add_cron_job(job: CronJobCreate):
 @router.put("")
 def update_cron_job(job: CronJobUpdate):
     try:
-        # Validate schedule format before updating
-        from crontab import CronTab
-        test_cron = CronTab()
-        try:
-            test_cron.new(command="echo", comment="test").setall(job.schedule)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid cron schedule format")
         crontab_utils.update_cron_job(job.index, job.dict())
         return {"status": "updated"}
     except IndexError:
@@ -134,7 +126,7 @@ def export_cron_jobs():
     return crontab_utils.get_crontab()
 
 class CronJobImport(BaseModel):
-    jobs: List[CronJobBase]
+    jobs: List[CronJobInput]
 
 # Import jobs
 @router.post("/import")

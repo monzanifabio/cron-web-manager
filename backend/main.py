@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from cron_routes import router
+from auth import verify_api_key
 import socket
 import os
 
@@ -15,7 +16,7 @@ app = FastAPI(
 
 # 2. ADDED: Include the API router before the static file serving.
 # This ensures that API calls like /api/cron-jobs are handled correctly.
-app.include_router(router)
+app.include_router(router, dependencies=[Depends(verify_api_key)])
 
 # Health check and hostname routes remain the same
 @app.get("/api/health")
