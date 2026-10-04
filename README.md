@@ -32,12 +32,16 @@ The Vite dev server proxies all `/api` requests to `http://localhost:8000`, so n
 ## Production build
 
 ```bash
-cd frontend
-npm run build          # outputs to backend/dist/
-uvicorn main:app --host 0.0.0.0 --port 8000
+npm run start:prod
 ```
 
-The backend serves the compiled frontend from `backend/dist/` at the root path.
+This command builds the frontend into `backend/dist/` and then starts the FastAPI app from `backend/`. The backend serves the compiled frontend from `backend/dist/` at the root path.
+
+You can override the bind settings if needed:
+
+```bash
+HOST=127.0.0.1 PORT=9000 npm run start:prod
+```
 
 ---
 

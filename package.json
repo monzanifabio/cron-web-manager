@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "scripts": {
+    "start:prod": "sh ./scripts/start-prod.sh"
+  }
+}
