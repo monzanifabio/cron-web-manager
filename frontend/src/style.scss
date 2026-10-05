@@ -5,6 +5,25 @@
   --accent: #49e188;
   --font-primary: "Geist", sans-serif;
   --font-mono: "Geist Mono", monospace;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-surface-dark: #2b3134;
+  --color-card-border: rgba(255, 255, 255, 0.08);
+  --color-card-border-hover: rgba(255, 255, 255, 0.16);
+  --color-card-divider: rgba(255, 255, 255, 0.2);
+  --color-label-muted: #8a949a;
+  --color-modal-output: #eee;
+  --color-footer-muted: #6c757d;
+  --color-button-white-hover: rgba(255, 255, 255, 0.8);
+  --color-danger: #ae4d41;
+  --color-danger-hover: rgba(174, 77, 65, 0.8);
+  --color-dark-hover: rgba(43, 49, 52, 0.8);
+  --color-success-badge-bg: #204736;
+  --color-success-badge-text: #56ad87;
+  --color-danger-badge-bg: #542a26;
+  --pulse-success-rgb: 72, 222, 82;
+  --pulse-danger-rgb: 222, 84, 72;
+  --pulse-danger-soft-rgb: 174, 77, 65;
 }
 // Custom styles that override Bootstrap
 * {
@@ -45,7 +64,7 @@ body {
   background-color: transparent;
 }
 th {
-  background-color: #2b3134 !important;
+  background-color: var(--color-surface-dark) !important;
   font-weight: 500;
   font-size: 0.8rem;
 }
@@ -62,7 +81,7 @@ td {
 }
 
 .cron-cards-header {
-  background-color: #2b3134;
+  background-color: var(--color-surface-dark);
   padding: 0.5rem 0.75rem;
 }
 
@@ -73,19 +92,19 @@ td {
 
 .cron-card {
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-card-border);
   border-bottom: 0;
   border-radius: 0;
   font-family: var(--font-mono);
 }
 
 .cron-card:last-child {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-card-border);
 }
 
 .cron-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background-color: #2b3134;
+  border-color: var(--color-card-border-hover);
+  background-color: var(--color-surface-dark);
 }
 
 .cron-card-field {
@@ -95,7 +114,7 @@ td {
 .cron-card-label {
   display: block;
   margin-bottom: 0.35rem;
-  color: #8a949a;
+  color: var(--color-label-muted);
   letter-spacing: 0.08em;
 }
 
@@ -122,14 +141,14 @@ td {
   text-transform: uppercase;
   font-size: 0.8rem;
   border-radius: 0px;
-  background-color: #ffffff;
-  color: #000000;
-  border: 1px solid #ffffff;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  border: 1px solid var(--color-white);
 }
 .btn-main:hover {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #000000;
-  border-color: #ffffff;
+  background-color: var(--color-button-white-hover);
+  color: var(--color-black);
+  border-color: var(--color-white);
 }
 
 .btn-close {
@@ -141,28 +160,28 @@ td {
   text-transform: uppercase;
   font-size: 0.8rem;
   border-radius: 0px;
-  background-color: #ae4d41;
-  color: #ffffff;
-  border: 1px solid #ae4d41;
+  background-color: var(--color-danger);
+  color: var(--color-white);
+  border: 1px solid var(--color-danger);
 }
 .btn-negative:hover {
-  background-color: rgba(174, 77, 65, 0.8);
-  color: #ffffff;
-  border-color: #ae4d41;
+  background-color: var(--color-danger-hover);
+  color: var(--color-white);
+  border-color: var(--color-danger);
 }
 .btn-dark {
   font-family: var(--font-mono);
   text-transform: uppercase;
   font-size: 0.8rem;
   border-radius: 0px;
-  background-color: #2b3134;
-  color: #ffffff;
-  border: 1px solid #2b3134;
+  background-color: var(--color-surface-dark);
+  color: var(--color-white);
+  border: 1px solid var(--color-surface-dark);
 }
 .btn-dark:hover {
-  background-color: rgba(43, 49, 52, 0.8);
-  color: #ffffff;
-  border-color: #2b3134;
+  background-color: var(--color-dark-hover);
+  color: var(--color-white);
+  border-color: var(--color-surface-dark);
 }
 
 .dropdown-menu {
@@ -195,7 +214,7 @@ td {
 
 .modal-header {
   padding: 0.5rem 1rem;
-  background-color: #2b3134 !important;
+  background-color: var(--color-surface-dark) !important;
 }
 
 .modal-content {
@@ -205,7 +224,7 @@ td {
 .modal-output {
   min-height: 300px;
   font-size: 0.8rem;
-  color: #eee;
+  color: var(--color-modal-output);
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
@@ -219,19 +238,19 @@ td {
 }
 
 .badge-success {
-  background-color: #204736;
-  color: #56ad87;
+  background-color: var(--color-success-badge-bg);
+  color: var(--color-success-badge-text);
 }
 
 .badge-danger {
-  background-color: #542a26;
-  color: #ae4d41;
+  background-color: var(--color-danger-badge-bg);
+  color: var(--color-danger);
 }
 
 .footer-section {
   flex-shrink: 0;
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--color-footer-muted);
   margin: 0;
 }
 
@@ -244,15 +263,15 @@ td {
 }
 
 .bg-success {
-  background-color: #49e188; /* Default color */
-  box-shadow: 0 0 0 0 rgb(72, 222, 82, 1);
+  background-color: var(--accent); /* Default color */
+  box-shadow: 0 0 0 0 rgba(var(--pulse-success-rgb), 1);
   transform: scale(1);
   animation: pulse-success 2s infinite;
 }
 
 .bg-danger {
-  background-color: #ae4d41; /* Default color */
-  box-shadow: 0 0 0 0 rgb(222, 84, 72, 1);
+  background-color: var(--color-danger); /* Default color */
+  box-shadow: 0 0 0 0 rgba(var(--pulse-danger-rgb), 1);
   transform: scale(1);
   animation: pulse-danger 2s infinite;
 }
@@ -285,34 +304,34 @@ td {
 @keyframes pulse-success {
   0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(72, 222, 82, 0.7);
+    box-shadow: 0 0 0 0 rgba(var(--pulse-success-rgb), 0.7);
   }
 
   70% {
     transform: scale(1);
-    box-shadow: 0 0 0 8px rgba(72, 222, 82, 0);
+    box-shadow: 0 0 0 8px rgba(var(--pulse-success-rgb), 0);
   }
 
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(222, 84, 72, 0);
+    box-shadow: 0 0 0 0 rgba(var(--pulse-danger-rgb), 0);
   }
 }
 
 @keyframes pulse-danger {
   0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(174, 77, 65, 0.7);
+    box-shadow: 0 0 0 0 rgba(var(--pulse-danger-soft-rgb), 0.7);
   }
 
   70% {
     transform: scale(1);
-    box-shadow: 0 0 0 8px rgba(174, 77, 65, 0);
+    box-shadow: 0 0 0 8px rgba(var(--pulse-danger-soft-rgb), 0);
   }
 
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(222, 84, 72, 0);
+    box-shadow: 0 0 0 0 rgba(var(--pulse-danger-rgb), 0);
   }
 }
 
@@ -331,12 +350,12 @@ td {
 .table thead th {
   position: sticky;
   top: 0;
-  background-color: var(--bs-dark);
+  background-color: var(--color-surface-dark);
   z-index: 10;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid var(--color-card-divider);
 }
 
 .preview {
   font-family: var(--font-mono);
-  background-color: #2b3134;
+  background-color: var(--color-surface-dark);
 }
