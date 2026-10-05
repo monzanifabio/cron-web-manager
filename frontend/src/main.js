@@ -117,6 +117,11 @@ function countJobsByStatus(jobs) {
   document.getElementById("inactiveJobs").innerHTML = jobs.filter((j) => !j.enabled).length;
 }
 
+function updateEditScheduleDescription(schedule) {
+  const descriptionElement = document.getElementById("editCronText");
+  descriptionElement.textContent = getScheduleDescription(schedule) || "Invalid cron expression";
+}
+
 async function loadJobs() {
   const tbody = document.getElementById("cronTableBody");
   try {
@@ -283,8 +288,13 @@ function editJob(index, schedule, command, enabled, hasLogging, comment = "") {
   form.enabled.checked = enabled;
   form.has_logging.checked = hasLogging;
   form.comment.value = comment;
+  updateEditScheduleDescription(form.schedule.value);
   modals.edit.show();
 }
+
+document.querySelector('#editForm [name="schedule"]').addEventListener("input", (e) => {
+  updateEditScheduleDescription(e.target.value);
+});
 
 // Update the edit form submit handler
 document.getElementById("editForm").addEventListener("submit", async (e) => {
