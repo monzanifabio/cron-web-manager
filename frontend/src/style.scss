@@ -11,6 +11,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-size: 14px;
 }
 
 html,
@@ -61,25 +62,30 @@ td {
 }
 
 .cron-cards-header {
-  padding: 0 1rem 0.75rem;
+  background-color: #2b3134;
+  padding: 0.5rem 0.75rem;
 }
 
 .cron-card-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
 .cron-card {
   padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  border-bottom: 0;
   border-radius: 0;
+  font-family: var(--font-mono);
+}
+
+.cron-card:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cron-card:hover {
   border-color: rgba(255, 255, 255, 0.16);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  background-color: #2b3134;
 }
 
 .cron-card-field {
