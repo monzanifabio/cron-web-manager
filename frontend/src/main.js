@@ -11,6 +11,14 @@ function convertSpecialToClassic(schedule) {
   };
   return mapping[schedule.trim()] || schedule;
 }
+
+function getScheduleDescription(schedule) {
+  try {
+    return cronstrue.toString(convertSpecialToClassic(schedule));
+  } catch {
+    return "";
+  }
+}
 // Set app version in footer
 document.addEventListener("DOMContentLoaded", () => {
   const versionElement = document.getElementById("appVersion");
@@ -20,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 import "/src/style.scss";
 import * as bootstrap from "bootstrap";
+import cronstrue from "cronstrue";
 import cronValidate from "cron-validate";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -117,8 +126,12 @@ async function loadJobs() {
     countJobsByStatus(jobs);
     tbody.innerHTML = "";
     jobs.forEach((job, index) => {
+      const scheduleDescription = getScheduleDescription(job.schedule);
       const row = `<tr>
-        <td class="text-nowrap">${job.schedule}</td>
+        <td class="schedule-cell">
+          <div class="schedule-expression">${job.schedule}</div>
+          ${scheduleDescription ? `<div class="schedule-description text-muted small">${scheduleDescription}</div>` : ""}
+        </td>
         <td>
         ${job.comment ? `<div class="text-uppercase">${job.comment}</div>` : ""}
           <div class="text-muted small">${job.command}</div>
