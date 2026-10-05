@@ -32,6 +32,13 @@ def test_list_cron_jobs_returns_list():
     assert isinstance(response.json(), list)
 
 
+def test_get_raw_crontab_returns_text():
+    with patch("cron_routes.crontab_utils.get_crontab_text", return_value="* * * * * echo hi\n"):
+        response = client.get("/api/cron-jobs/raw")
+    assert response.status_code == 200
+    assert response.json() == {"crontab": "* * * * * echo hi\n"}
+
+
 def test_add_cron_job_invalid_schedule():
     with patch("crontab_utils.CronTab") as mock_ct:
         mock_ct.return_value.new.side_effect = ValueError("Invalid schedule")

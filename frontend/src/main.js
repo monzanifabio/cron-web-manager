@@ -47,10 +47,13 @@ const modals = {
   log: new bootstrap.Modal(document.getElementById("logModal"), {
     focus: false,
   }),
+  crontab: new bootstrap.Modal(document.getElementById("crontabModal"), {
+    focus: false,
+  }),
 };
 
 // Add modal hide event listeners
-["addModal", "editModal", "deleteModal"].forEach((modalId) => {
+["addModal", "editModal", "deleteModal", "crontabModal"].forEach((modalId) => {
   document.getElementById(modalId).addEventListener("hidden.bs.modal", () => {
     document.querySelector("[data-refresh]").focus();
   });
@@ -377,6 +380,21 @@ async function duplicateJob(index) {
   });
 }
 
+async function viewCrontab() {
+  const crontabElement = document.getElementById("crontabOutput");
+  crontabElement.textContent = "Loading crontab...";
+  modals.crontab.show();
+
+  try {
+    const res = await fetch(`${API_BASE}/cron-jobs/raw`);
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const data = await res.json();
+    crontabElement.textContent = data.crontab || "Crontab is empty";
+  } catch (err) {
+    crontabElement.textContent = `Error loading crontab: ${err.message}`;
+  }
+}
+
 // Export cron jobs
 async function exportJobs() {
   try {
@@ -522,3 +540,6 @@ document.getElementById("confirmImportJobs").addEventListener("click", async () 
 
 // Add event listener for import button
 document.getElementById("importJobs").addEventListener("click", importJobs);
+
+// Add event listener for raw crontab button
+document.getElementById("viewCrontab").addEventListener("click", viewCrontab);

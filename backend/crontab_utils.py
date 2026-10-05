@@ -120,6 +120,11 @@ def extract_log_path(command: str) -> str:
             return match.group(1)
     return ""
 
+
+def get_crontab_text() -> str:
+    """Returns the current user's crontab as raw text."""
+    return str(CronTab(user=True))
+
 def import_cron_jobs(jobs: List[Dict]) -> None:
     """Imports cron jobs from a list of dictionaries."""
     cron = CronTab(user=True)

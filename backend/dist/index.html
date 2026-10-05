@@ -5,8 +5,8 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cron Manager</title>
-    <script type="module" crossorigin src="/assets/index-Bk7WSrFR.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-M3mkq0OW.css">
+    <script type="module" crossorigin src="/assets/index-CC2k_pLa.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BCb5tP62.css">
   </head>
   <body>
     <div class="container vh-100 d-flex flex-column">
@@ -60,6 +60,7 @@
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#" id="exportJobs">Export</a></li>
                 <li><a class="dropdown-item" href="#" id="importJobs">Import</a></li>
+                <li><a class="dropdown-item" href="#" id="viewCrontab">View Crontab</a></li>
               </ul>
             </div>
           </div>
@@ -209,7 +210,7 @@
             </button>
           </div>
           <div class="modal-body">
-            <pre id="logOutput"></pre>
+            <pre id="logOutput" class="modal-output font-console"></pre>
           </div>
         </div>
       </div>
@@ -394,6 +395,33 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
             <button type="button" class="btn btn-negative" id="confirmDelete">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="crontabModal" tabindex="-1" role="dialog" aria-labelledby="crontabModalLabel">
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-uppercase" id="crontabModalLabel">Full Crontab</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-focus="false">
+              <svg
+                class="align-top"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <pre id="crontabOutput" class="modal-output font-console"></pre>
           </div>
         </div>
       </div>

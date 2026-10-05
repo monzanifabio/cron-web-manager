@@ -125,6 +125,12 @@ def export_cron_jobs():
     """Endpoint to export all cron jobs to a JSON file."""
     return crontab_utils.get_crontab()
 
+
+@router.get("/raw")
+def export_raw_crontab():
+    """Endpoint to return the full raw crontab text."""
+    return {"crontab": crontab_utils.get_crontab_text()}
+
 class CronJobImport(BaseModel):
     jobs: List[CronJobInput]
 

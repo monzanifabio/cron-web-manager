@@ -151,11 +151,13 @@ td {
   border-radius: 0px;
 }
 
-#logOutput {
+.modal-output {
   min-height: 300px;
   font-size: 0.8rem;
   color: #eee;
   margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .form-label {
