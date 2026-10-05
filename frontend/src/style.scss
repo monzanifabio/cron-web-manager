@@ -52,6 +52,51 @@ td {
   vertical-align: middle;
 }
 
+.cron-cards-header,
+.cron-card {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.3fr) minmax(14rem, 2fr) minmax(7rem, 0.7fr) minmax(8rem, auto);
+  gap: 1rem;
+  align-items: start;
+}
+
+.cron-cards-header {
+  padding: 0 1rem 0.75rem;
+}
+
+.cron-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cron-card {
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  border-radius: 0;
+}
+
+.cron-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+}
+
+.cron-card-field {
+  min-width: 0;
+}
+
+.cron-card-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #8a949a;
+  letter-spacing: 0.08em;
+}
+
+.cron-card-schedule {
+  word-break: break-word;
+}
+
 .schedule-cell {
   min-width: 12rem;
 }
@@ -204,6 +249,31 @@ td {
   box-shadow: 0 0 0 0 rgb(222, 84, 72, 1);
   transform: scale(1);
   animation: pulse-danger 2s infinite;
+}
+
+@media (max-width: 767.98px) {
+  .cron-cards-header {
+    display: none;
+  }
+
+  .cron-card {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    padding: 0.9rem;
+  }
+
+  .cron-card-label {
+    margin-bottom: 0.5rem;
+  }
+
+  .cron-card-actions .dropdown,
+  .cron-card-actions .btn {
+    width: 100%;
+  }
+
+  .cron-card-actions .dropdown-menu {
+    width: 100%;
+  }
 }
 
 @keyframes pulse-success {

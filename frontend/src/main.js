@@ -126,30 +126,34 @@ function updateEditScheduleDescription(schedule) {
 }
 
 async function loadJobs() {
-  const tbody = document.getElementById("cronTableBody");
+  const jobList = document.getElementById("cronTableBody");
   try {
     const res = await fetch(`${API_BASE}/cron-jobs`);
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
     const jobs = await res.json();
     countJobsByStatus(jobs);
-    tbody.innerHTML = "";
+    jobList.innerHTML = "";
     jobs.forEach((job, index) => {
       const scheduleDescription = getScheduleDescription(job.schedule);
-      const row = `<tr>
-        <td class="schedule-cell">
+      const card = `<article class="cron-card">
+        <div class="cron-card-field cron-card-schedule">
+          <span class="cron-card-label d-md-none">Schedule</span>
           <div class="schedule-expression">${job.schedule}</div>
           ${scheduleDescription ? `<div class="schedule-description text-muted small">${scheduleDescription}</div>` : ""}
-        </td>
-        <td>
-        ${job.comment ? `<div class="text-uppercase">${job.comment}</div>` : ""}
+        </div>
+        <div class="cron-card-field cron-card-command">
+          <span class="cron-card-label d-md-none">Command</span>
+          ${job.comment ? `<div class="text-uppercase">${job.comment}</div>` : ""}
           <div class="text-muted small">${job.command}</div>
-        </td>
-        <td>
+        </div>
+        <div class="cron-card-field cron-card-status">
+          <span class="cron-card-label d-md-none">Status</span>
           <span class="badge ${job.enabled ? "badge-success" : "badge-danger"}">
             ${job.enabled ? "Active" : "Inactive"}
           </span>
-        </td>
-        <td>
+        </div>
+        <div class="cron-card-field cron-card-actions">
+          <span class="cron-card-label d-md-none">Actions</span>
           <div class="dropdown">
             <button class="btn btn-sm btn-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C11.175 3 10.5 3.675 10.5 4.5C10.5 5.325 11.175 6 12 6C12.825 6 13.5 5.325 13.5 4.5C13.5 3.675 12.825 3 12 3ZM12 18C11.175 18 10.5 18.675 10.5 19.5C10.5 20.325 11.175 21 12 21C12.825 21 13.5 20.325 13.5 19.5C13.5 18.675 12.825 18 12 18ZM12 10.5C11.175 10.5 10.5 11.175 10.5 12C10.5 12.825 11.175 13.5 12 13.5C12.825 13.5 13.5 12.825 13.5 12C13.5 11.175 12.825 10.5 12 10.5Z"></path></svg>
@@ -172,12 +176,12 @@ async function loadJobs() {
               Delete</a></li>
             </ul>
           </div>
-        </td>
-      </tr>`;
-      tbody.insertAdjacentHTML("beforeend", row);
+        </div>
+      </article>`;
+      jobList.insertAdjacentHTML("beforeend", card);
     });
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-danger text-center py-3">Failed to load jobs. ${err.message}</td></tr>`;
+    jobList.innerHTML = `<div class="cron-card cron-card-error text-danger text-center py-3">Failed to load jobs. ${err.message}</div>`;
   }
 }
 
@@ -200,7 +204,7 @@ document.getElementById("cronTableBody").addEventListener("click", async (e) => 
   } else if (action === "delete") {
     deleteJob(parseInt(index));
   } else if (action === "edit") {
-    const commentCell = target.closest("tr").querySelector(".text-uppercase");
+    const commentCell = target.closest(".cron-card").querySelector(".text-uppercase");
     const comment = commentCell ? commentCell.textContent.trim() : "";
     editJob(
       parseInt(index),
