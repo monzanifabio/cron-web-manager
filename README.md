@@ -27,6 +27,15 @@ npm run dev            # serves on http://localhost:8080, proxies /api → :8000
 
 The Vite dev server proxies all `/api` requests to `http://localhost:8000`, so no CORS configuration or `.env` changes are needed for local development.
 
+To preview the production UI locally without running the backend, start the frontend in mock mode:
+
+```bash
+cd frontend
+npm run dev:mock
+```
+
+This uses seeded fake cron jobs in the browser and keeps add/edit/delete/import/duplicate changes in local storage while mock mode is active.
+
 ---
 
 ## Production build

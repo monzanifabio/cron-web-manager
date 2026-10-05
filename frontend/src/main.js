@@ -30,8 +30,10 @@ import "/src/style.scss";
 import * as bootstrap from "bootstrap";
 import cronstrue from "cronstrue";
 import cronValidate from "cron-validate";
+import { mockFetch } from "/src/mockApi.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const apiFetch = import.meta.env.VITE_USE_MOCK_DATA === "true" ? mockFetch : fetch;
 
 // Initialize modals with focus options
 const modals = {
@@ -61,7 +63,7 @@ const modals = {
 
 async function loadHostname() {
   try {
-    const res = await fetch(`${API_BASE}/hostname`);
+    const res = await apiFetch(`${API_BASE}/hostname`);
     const data = await res.json();
     const hostnameElement = document.getElementById("hostname");
     if (data.hostname) {
@@ -79,7 +81,7 @@ loadHostname();
 
 async function loadHealthStatus() {
   try {
-    const res = await fetch(`${API_BASE}/health`);
+    const res = await apiFetch(`${API_BASE}/health`);
     const data = await res.json();
     const healthStatusElement = document.getElementById("healthStatus");
     const healthIndicator = document.querySelector(".health-indicator");
@@ -128,7 +130,7 @@ function updateEditScheduleDescription(schedule) {
 async function loadJobs() {
   const jobList = document.getElementById("cronTableBody");
   try {
-    const res = await fetch(`${API_BASE}/cron-jobs`);
+    const res = await apiFetch(`${API_BASE}/cron-jobs`);
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
     const jobs = await res.json();
     countJobsByStatus(jobs);
@@ -228,7 +230,7 @@ async function deleteJob(index) {
 document.getElementById("confirmDelete").addEventListener("click", async () => {
   if (jobToDelete !== null) {
     try {
-      const res = await fetch(`${API_BASE}/cron-jobs/${jobToDelete}`, { method: "DELETE" });
+      const res = await apiFetch(`${API_BASE}/cron-jobs/${jobToDelete}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
     } catch (err) {
       showAppError(`Failed to delete job: ${err.message}`);
@@ -268,7 +270,7 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   };
 
   try {
-    const res = await fetch(`${API_BASE}/cron-jobs`, {
+    const res = await apiFetch(`${API_BASE}/cron-jobs`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -337,7 +339,7 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
   };
 
   try {
-    const res = await fetch(`${API_BASE}/cron-jobs`, {
+    const res = await apiFetch(`${API_BASE}/cron-jobs`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -368,7 +370,7 @@ async function loadLogs(logPath, lines = 100) {
     return;
   }
   try {
-    const res = await fetch(`${API_BASE}/cron-jobs/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
+    const res = await apiFetch(`${API_BASE}/cron-jobs/logs?path=${encodeURIComponent(logPath)}&lines=${lines}`);
     const data = await res.json();
     logElement.textContent = data.log || data.error || "No log data available.";
   } catch (err) {
@@ -378,7 +380,7 @@ async function loadLogs(logPath, lines = 100) {
 }
 
 async function duplicateJob(index) {
-  await fetch(`${API_BASE}/cron-jobs/${index}/duplicate`, {
+  await apiFetch(`${API_BASE}/cron-jobs/${index}/duplicate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -390,7 +392,7 @@ async function viewCrontab() {
   modals.crontab.show();
 
   try {
-    const res = await fetch(`${API_BASE}/cron-jobs/raw`);
+    const res = await apiFetch(`${API_BASE}/cron-jobs/raw`);
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
     const data = await res.json();
     crontabElement.textContent = data.crontab || "Crontab is empty";
@@ -402,7 +404,7 @@ async function viewCrontab() {
 // Export cron jobs
 async function exportJobs() {
   try {
-    const res = await fetch(`${API_BASE}/cron-jobs/export`);
+    const res = await apiFetch(`${API_BASE}/cron-jobs/export`);
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
     const jobs = await res.json();
     const data = JSON.stringify(jobs, null, 2);
@@ -462,7 +464,7 @@ async function importJobs() {
       try {
         const importedJobs = JSON.parse(event.target.result);
         // Fetch current jobs to check for duplicates
-        const res = await fetch(`${API_BASE}/cron-jobs`);
+        const res = await apiFetch(`${API_BASE}/cron-jobs`);
         const existingJobs = await res.json();
         // Filter out duplicates (same schedule and command)
         const filteredJobs = importedJobs.filter((newJob) => {
@@ -530,7 +532,7 @@ document.getElementById("confirmImportJobs").addEventListener("click", async () 
       ...job,
       schedule: convertSpecialToClassic(job.schedule),
     }));
-    await fetch(`${API_BASE}/cron-jobs/import`, {
+    await apiFetch(`${API_BASE}/cron-jobs/import`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ jobs: jobsConverted }),
