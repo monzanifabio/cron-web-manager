@@ -282,22 +282,41 @@ td {
   }
 
   .cron-card {
-    grid-template-columns: 1fr;
-    gap: 0.9rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "command actions"
+      "schedule schedule"
+      "status status";
+    gap: 1.1rem;
     padding: 0.9rem;
   }
 
-  .cron-card-label {
-    margin-bottom: 0.5rem;
+  .cron-card-command {
+    grid-area: command;
+    overflow-wrap: anywhere;
   }
 
-  .cron-card-actions .dropdown,
-  .cron-card-actions .btn {
-    width: 100%;
+  .cron-card-schedule {
+    grid-area: schedule;
+  }
+
+  .cron-card-status {
+    grid-area: status;
+  }
+
+  .cron-card-actions {
+    grid-area: actions;
+    align-self: start;
+    text-align: right;
+  }
+
+  .cron-card-label {
+    display: none;
   }
 
   .cron-card-actions .dropdown-menu {
-    width: 100%;
+    right: 0;
+    left: auto;
   }
 }
 
