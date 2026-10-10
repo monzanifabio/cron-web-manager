@@ -85,6 +85,8 @@ def update_cron_job(index: int, job_data: Dict) -> None:
         with open(backup_path, "r") as backup_file:
             cron = CronTab(tab=backup_file.read(), user=True)
             cron.write()
+        if isinstance(e, ValueError):
+            raise
         raise RuntimeError(f"Failed to update cron job, rolled back. Error: {e}")
     finally:
         try:
