@@ -5,8 +5,8 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cron Manager</title>
-    <script type="module" crossorigin src="/assets/index-CKhbfaZX.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DUgQIWuw.css">
+    <script type="module" crossorigin src="/assets/index-B3_4_CZp.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BYpQ8lMR.css">
   </head>
   <body>
     <div class="container vh-100 d-flex flex-column">
@@ -69,6 +69,23 @@
 
       <!-- Table Section -->
       <div class="table-section">
+        <div class="table-filters d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center mb-3">
+          <div class="job-search-wrap">
+            <input
+              id="jobSearchInput"
+              class="form-control font-console"
+              type="search"
+              placeholder="Search by name or command"
+              aria-label="Search jobs by name or command"
+            />
+            <kbd class="job-search-shortcut" aria-hidden="true">/</kbd>
+          </div>
+          <select id="jobStatusFilter" class="form-select font-console" aria-label="Filter jobs by status">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
         <div class="table-container">
           <div class="cron-cards-header d-none d-md-grid text-uppercase small text-muted">
             <div>Schedule</div>

@@ -67,6 +67,23 @@
 
       <!-- Table Section -->
       <div class="table-section">
+        <div class="table-filters d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center mb-3">
+          <div class="job-search-wrap">
+            <input
+              id="jobSearchInput"
+              class="form-control font-console"
+              type="search"
+              placeholder="Search by name or command"
+              aria-label="Search jobs by name or command"
+            />
+            <kbd class="job-search-shortcut" aria-hidden="true">/</kbd>
+          </div>
+          <select id="jobStatusFilter" class="form-select font-console" aria-label="Filter jobs by status">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
         <div class="table-container">
           <div class="cron-cards-header d-none d-md-grid text-uppercase small text-muted">
             <div>Schedule</div>
