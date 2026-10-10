@@ -204,7 +204,17 @@ function renderJobs(jobs) {
                 </a>
               </li>
               <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="toggle-status" data-index="${index}" data-enabled="${job.enabled}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM11 7V13H13V7H11ZM11 15V17H13V15H11Z"></path></svg>
+              ${
+                job.enabled
+                  ? `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 4.5L4 12.5" stroke-width="1.5" stroke="currentColor"/>
+              </svg>`
+                  : `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M11.5 6L7 10.5L5 8.5" stroke-width="1.5" stroke="currentColor"/>
+              </svg>`
+              }
               ${job.enabled ? "Deactivate" : "Activate"}</a></li>
               <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="edit" data-index="${index}" data-schedule="${job.schedule}" data-command="${job.command}" data-enabled="${job.enabled}" data-has-logging="${job.has_logging}">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.41421 15.89L16.5563 5.74785L15.1421 4.33363L5 14.4758V15.89H6.41421ZM7.24264 17.89H3V13.6473L14.435 2.21231C14.8256 1.82179 15.4587 1.82179 15.8492 2.21231L18.6777 5.04074C19.0682 5.43126 19.0682 6.06443 18.6777 6.45495L7.24264 17.89ZM3 19.89H21V21.89H3V19.89Z"></path></svg>
