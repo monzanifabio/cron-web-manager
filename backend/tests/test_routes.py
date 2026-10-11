@@ -47,3 +47,25 @@ def test_add_cron_job_invalid_schedule():
             json={"schedule": "not-valid", "command": "echo hi", "enabled": True, "comment": ""},
         )
     assert response.status_code == 400
+
+
+def test_update_cron_job_invalid_schedule_returns_400():
+    with patch("crontab_utils.CronTab") as mock_ct:
+        job = MagicMock()
+        job.is_valid.return_value = False
+
+        current_cron = MagicMock()
+        current_cron.__iter__ = MagicMock(return_value=iter([job]))
+        current_cron.__str__.return_value = "* * * * * echo hi"
+
+        rollback_cron = MagicMock()
+        mock_ct.side_effect = [current_cron, rollback_cron]
+
+        response = client.put(
+            "/api/cron-jobs",
+            json={"index": 0, "schedule": "not-valid", "command": "echo hi", "enabled": True, "comment": ""},
+        )
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Invalid cron schedule"}
+    rollback_cron.write.assert_called_once()

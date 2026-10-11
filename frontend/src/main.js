@@ -122,22 +122,55 @@ function countJobsByStatus(jobs) {
   document.getElementById("inactiveJobs").innerHTML = jobs.filter((j) => !j.enabled).length;
 }
 
-function updateEditScheduleDescription(schedule) {
-  const descriptionElement = document.getElementById("editCronText");
-  descriptionElement.textContent = getScheduleDescription(schedule) || "Invalid cron expression";
+const jobList = document.getElementById("cronTableBody");
+const jobSearchInput = document.getElementById("jobSearchInput");
+const jobStatusFilter = document.getElementById("jobStatusFilter");
+
+let allJobs = [];
+
+function isTypingTarget(element) {
+  if (!element) {
+    return false;
+  }
+
+  const tagName = element.tagName;
+  return (
+    element.isContentEditable ||
+    tagName === "INPUT" ||
+    tagName === "TEXTAREA" ||
+    tagName === "SELECT" ||
+    tagName === "BUTTON"
+  );
 }
 
-async function loadJobs() {
-  const jobList = document.getElementById("cronTableBody");
-  try {
-    const res = await apiFetch(`${API_BASE}/cron-jobs`);
-    if (!res.ok) throw new Error(`Server error: ${res.status}`);
-    const jobs = await res.json();
-    countJobsByStatus(jobs);
-    jobList.innerHTML = "";
-    jobs.forEach((job, index) => {
-      const scheduleDescription = getScheduleDescription(job.schedule);
-      const card = `<article class="cron-card">
+function getFilteredJobs() {
+  const query = jobSearchInput.value.trim().toLowerCase();
+  const status = jobStatusFilter.value;
+
+  return allJobs
+    .map((job, index) => ({ job, index }))
+    .filter(({ job }) => {
+      const matchesQuery =
+        query === "" || job.command.toLowerCase().includes(query) || (job.comment || "").toLowerCase().includes(query);
+      const matchesStatus =
+        status === "all" || (status === "active" && job.enabled) || (status === "inactive" && !job.enabled);
+
+      return matchesQuery && matchesStatus;
+    });
+}
+
+function renderJobs(jobs) {
+  jobList.innerHTML = "";
+
+  if (jobs.length === 0) {
+    jobList.innerHTML =
+      '<div class="cron-card cron-card-empty text-muted text-center py-3">No jobs match the current filters.</div>';
+    return;
+  }
+
+  jobs.forEach(({ job, index }) => {
+    const scheduleDescription = getScheduleDescription(job.schedule);
+    const card = `<article class="cron-card">
         <div class="cron-card-field cron-card-schedule">
           <span class="cron-card-label d-md-none">Schedule</span>
           <div class="schedule-expression">${job.schedule}</div>
@@ -180,12 +213,47 @@ async function loadJobs() {
           </div>
         </div>
       </article>`;
-      jobList.insertAdjacentHTML("beforeend", card);
-    });
+    jobList.insertAdjacentHTML("beforeend", card);
+  });
+}
+
+function applyJobFilters() {
+  renderJobs(getFilteredJobs());
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) {
+    return;
+  }
+
+  if (isTypingTarget(event.target)) {
+    return;
+  }
+
+  event.preventDefault();
+  jobSearchInput.focus();
+  jobSearchInput.select();
+});
+
+function updateEditScheduleDescription(schedule) {
+  const descriptionElement = document.getElementById("editCronText");
+  descriptionElement.textContent = getScheduleDescription(schedule) || "Invalid cron expression";
+}
+
+async function loadJobs() {
+  try {
+    const res = await apiFetch(`${API_BASE}/cron-jobs`);
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    allJobs = await res.json();
+    countJobsByStatus(allJobs);
+    applyJobFilters();
   } catch (err) {
     jobList.innerHTML = `<div class="cron-card cron-card-error text-danger text-center py-3">Failed to load jobs. ${err.message}</div>`;
   }
 }
+
+jobSearchInput.addEventListener("input", applyJobFilters);
+jobStatusFilter.addEventListener("change", applyJobFilters);
 
 // Event delegation for table row actions (registered once at module scope)
 document.getElementById("cronTableBody").addEventListener("click", async (e) => {
