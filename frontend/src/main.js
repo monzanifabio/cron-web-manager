@@ -203,6 +203,19 @@ function renderJobs(jobs) {
                 Duplicate
                 </a>
               </li>
+              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="toggle-status" data-index="${index}" data-enabled="${job.enabled}">
+              ${
+                job.enabled
+                  ? `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 4.5L4 12.5" stroke-width="1.5" stroke="currentColor"/>
+              </svg>`
+                  : `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M11.5 6L7 10.5L5 8.5" stroke-width="1.5" stroke="currentColor"/>
+              </svg>`
+              }
+              ${job.enabled ? "Deactivate" : "Activate"}</a></li>
               <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-action="edit" data-index="${index}" data-schedule="${job.schedule}" data-command="${job.command}" data-enabled="${job.enabled}" data-has-logging="${job.has_logging}">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6.41421 15.89L16.5563 5.74785L15.1421 4.33363L5 14.4758V15.89H6.41421ZM7.24264 17.89H3V13.6473L14.435 2.21231C14.8256 1.82179 15.4587 1.82179 15.8492 2.21231L18.6777 5.04074C19.0682 5.43126 19.0682 6.06443 18.6777 6.45495L7.24264 17.89ZM3 19.89H21V21.89H3V19.89Z"></path></svg>
               Edit</a></li>
@@ -270,6 +283,13 @@ document.getElementById("cronTableBody").addEventListener("click", async (e) => 
       loadJobs();
     } catch (err) {
       showAppError(`Failed to duplicate job: ${err.message}`);
+    }
+  } else if (action === "toggle-status") {
+    try {
+      await updateJobEnabled(parseInt(index), target.dataset.enabled !== "true");
+      loadJobs();
+    } catch (err) {
+      showAppError(`Failed to update job status: ${err.message}`);
     }
   } else if (action === "delete") {
     deleteJob(parseInt(index));
@@ -452,6 +472,30 @@ async function duplicateJob(index) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
+}
+
+async function updateJobEnabled(index, enabled) {
+  const job = allJobs[index];
+  if (!job) {
+    throw new Error("Invalid index");
+  }
+
+  const res = await apiFetch(`${API_BASE}/cron-jobs`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      index,
+      schedule: convertSpecialToClassic(job.schedule),
+      command: job.command,
+      enabled,
+      comment: job.comment || "",
+      has_logging: job.has_logging,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
 }
 
 async function viewCrontab() {
