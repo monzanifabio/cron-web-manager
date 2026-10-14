@@ -52,10 +52,16 @@ const modals = {
   crontab: new bootstrap.Modal(document.getElementById("crontabModal"), {
     focus: false,
   }),
+  executionHistory: new bootstrap.Modal(document.getElementById("executionHistoryModal"), {
+    focus: false,
+  }),
+  crontabHistory: new bootstrap.Modal(document.getElementById("crontabHistoryModal"), {
+    focus: false,
+  }),
 };
 
 // Add modal hide event listeners
-["addModal", "editModal", "deleteModal", "crontabModal"].forEach((modalId) => {
+["addModal", "editModal", "deleteModal", "crontabModal", "executionHistoryModal", "crontabHistoryModal"].forEach((modalId) => {
   document.getElementById(modalId).addEventListener("hidden.bs.modal", () => {
     document.querySelector("[data-refresh]").focus();
   });
@@ -104,6 +110,16 @@ async function loadHealthStatus() {
   }
 }
 loadHealthStatus();
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
+}
 
 function showAppError(message) {
   const existing = document.getElementById("appError");
@@ -661,3 +677,159 @@ document.getElementById("importJobs").addEventListener("click", importJobs);
 
 // Add event listener for raw crontab button
 document.getElementById("viewCrontab").addEventListener("click", viewCrontab);
+
+async function viewExecutionHistory() {
+  const notice = document.getElementById("executionHistoryNotice");
+  const rows = document.getElementById("executionHistoryRows");
+  notice.textContent = "Loading history…";
+  rows.innerHTML = "";
+  modals.executionHistory.show();
+  try {
+    const response = await apiFetch(`${API_BASE}/execution-history?limit=100`);
+    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    const data = await response.json();
+    const monitor = data.monitoring || {};
+    if (!monitor.enabled) {
+      notice.textContent = "Cron log monitoring is disabled. Set CRON_LOG_PATH to a readable host cron log to collect launch events. Scheduled jobs and CRUD remain available.";
+    } else if (!monitor.available) {
+      notice.textContent = `Cron log monitoring is unavailable: ${monitor.error || "log file not readable"}. Scheduled jobs and CRUD remain available.`;
+    } else {
+      notice.textContent = `Reading ${monitor.path}. Cron logs confirm launch events only; completion and success are unknown.`;
+    }
+    if (!data.items.length) {
+      rows.innerHTML = '<tr><td colspan="5" class="text-muted">No cron launch events recorded yet.</td></tr>';
+      return;
+    }
+    rows.innerHTML = data.items.map((item) => `
+      <tr>
+        <td class="text-nowrap">${escapeHtml(new Date(item.observed_at).toLocaleString())}</td>
+        <td>${escapeHtml(item.username)}</td>
+        <td><code class="text-break">${escapeHtml(item.command)}</code></td>
+        <td><span class="badge text-bg-secondary">Launch observed · result unknown</span></td>
+        <td class="text-break">${escapeHtml(item.source_path)}</td>
+      </tr>`).join("");
+  } catch (error) {
+    notice.textContent = `Could not load execution history: ${error.message}`;
+    rows.innerHTML = '<tr><td colspan="5" class="text-danger">History is unavailable.</td></tr>';
+  }
+}
+
+document.getElementById("viewExecutionHistory").addEventListener("click", (event) => {
+  event.preventDefault();
+  viewExecutionHistory();
+});
+
+let selectedCrontabChangeId = null;
+let rollbackPreview = null;
+
+async function loadCrontabHistory() {
+  const notice = document.getElementById("crontabHistoryNotice");
+  const rows = document.getElementById("crontabHistoryRows");
+  notice.textContent = "Loading exact crontab change history…";
+  rows.innerHTML = "";
+  document.getElementById("crontabChangeDetail").classList.add("d-none");
+  document.getElementById("rollbackPreviewPanel").classList.add("d-none");
+  rollbackPreview = null;
+  modals.crontabHistory.show();
+
+  try {
+    const response = await apiFetch(`${API_BASE}/crontab-history?limit=100`);
+    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    const data = await response.json();
+    if (!data.items.length) {
+      notice.textContent = "No app-driven crontab changes have been recorded yet.";
+      rows.innerHTML = '<tr><td colspan="4" class="text-muted">No changes recorded.</td></tr>';
+      return;
+    }
+    notice.textContent = "Snapshots are exact crontab text. Rollback is available only while the live crontab still matches that change's after snapshot.";
+    rows.innerHTML = data.items.map((item) => `
+      <tr>
+        <td class="text-nowrap">${escapeHtml(new Date(item.started_at).toLocaleString())}</td>
+        <td><strong>${escapeHtml(item.operation)}</strong><div class="small text-muted">${escapeHtml(item.summary)}</div></td>
+        <td><span class="badge ${item.outcome === "succeeded" ? "text-bg-success" : item.outcome === "failed" ? "text-bg-danger" : "text-bg-secondary"}">${escapeHtml(item.outcome)}</span></td>
+        <td><button class="btn btn-sm btn-dark" type="button" data-change-detail="${item.id}">View diff</button></td>
+      </tr>`).join("");
+  } catch (error) {
+    notice.textContent = `Could not load crontab history: ${error.message}`;
+    rows.innerHTML = '<tr><td colspan="4" class="text-danger">History is unavailable.</td></tr>';
+  }
+}
+
+async function showCrontabChange(changeId) {
+  selectedCrontabChangeId = Number(changeId);
+  rollbackPreview = null;
+  document.getElementById("rollbackPreviewPanel").classList.add("d-none");
+  const response = await apiFetch(`${API_BASE}/crontab-history/${selectedCrontabChangeId}`);
+  if (!response.ok) throw new Error(`Server error: ${response.status}`);
+  const change = await response.json();
+  document.getElementById("crontabChangeTitle").textContent = `#${change.id} · ${change.summary}`;
+  const beforeState = change.before_exists === null ? "unknown" : change.before_exists ? "present" : "absent";
+  const afterState = change.after_exists === null ? "unknown" : change.after_exists ? "present" : "absent";
+  const recoveryNote = change.after_snapshot_source === "recovery_observation"
+    ? " · current state observed during recovery, not confirmed as this operation's result"
+    : "";
+  document.getElementById("crontabChangeMeta").textContent = `${change.operation} · ${change.outcome} · crontab ${beforeState} → ${afterState}${recoveryNote} · ${new Date(change.started_at).toLocaleString()}${change.error ? ` · ${change.error}` : ""}`;
+  document.getElementById("crontabChangeDiff").textContent = change.diff || "No text diff (the crontab may have been empty or unchanged).";
+  document.getElementById("crontabChangeDetail").classList.remove("d-none");
+}
+
+document.getElementById("crontabHistoryRows").addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-change-detail]");
+  if (!button) return;
+  try {
+    await showCrontabChange(button.dataset.changeDetail);
+  } catch (error) {
+    document.getElementById("crontabHistoryNotice").textContent = `Could not load change detail: ${error.message}`;
+  }
+});
+
+document.getElementById("previewRollback").addEventListener("click", async () => {
+  const notice = document.getElementById("rollbackPreviewNotice");
+  const diff = document.getElementById("rollbackPreviewDiff");
+  const confirm = document.getElementById("confirmRollback");
+  const panel = document.getElementById("rollbackPreviewPanel");
+  confirm.disabled = true;
+  notice.textContent = "Checking the live crontab against the recorded after snapshot…";
+  diff.textContent = "";
+  panel.classList.remove("d-none");
+  try {
+    const response = await apiFetch(`${API_BASE}/crontab-history/${selectedCrontabChangeId}/rollback-preview`);
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.detail || `Server error: ${response.status}`);
+    rollbackPreview = result;
+    notice.textContent = result.can_rollback
+      ? `Fresh-state check passed. Review this exact diff before restoring a ${result.target_exists ? "present" : "absent"} crontab.`
+      : result.reason || "Rollback is unavailable.";
+    diff.textContent = result.diff || `No text difference. Restore target crontab is ${result.target_exists ? "present" : "absent"}.`;
+    confirm.disabled = !result.can_rollback;
+  } catch (error) {
+    rollbackPreview = null;
+    notice.textContent = `Rollback preview failed: ${error.message}`;
+  }
+});
+
+document.getElementById("confirmRollback").addEventListener("click", async () => {
+  if (!selectedCrontabChangeId || !rollbackPreview?.can_rollback) return;
+  const confirm = document.getElementById("confirmRollback");
+  confirm.disabled = true;
+  try {
+    const response = await apiFetch(`${API_BASE}/crontab-history/${selectedCrontabChangeId}/rollback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ expected_current_sha256: rollbackPreview.expected_current_sha256 }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.detail || `Server error: ${response.status}`);
+    document.getElementById("crontabHistoryNotice").textContent = "Exact snapshot restored and verified. A new rollback history entry was recorded.";
+    await loadCrontabHistory();
+    await showCrontabChange(result.change_id);
+  } catch (error) {
+    document.getElementById("rollbackPreviewNotice").textContent = `Rollback refused or failed: ${error.message}`;
+    confirm.disabled = false;
+  }
+});
+
+document.getElementById("viewCrontabHistory").addEventListener("click", (event) => {
+  event.preventDefault();
+  loadCrontabHistory();
+});

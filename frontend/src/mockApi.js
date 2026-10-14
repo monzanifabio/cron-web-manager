@@ -146,6 +146,25 @@ export async function mockFetch(input, init = {}) {
     return jsonResponse({ status: "ok" });
   }
 
+  if (path.endsWith("/crontab-history") && method === "GET") {
+    return jsonResponse({ items: [], limit: 100, offset: 0 });
+  }
+
+  if (path.endsWith("/execution-history") && method === "GET") {
+    return jsonResponse({
+      monitoring: {
+        enabled: false,
+        available: false,
+        path: null,
+        error: "Mock mode does not connect to host cron logs",
+      },
+      items: [],
+      limit: 100,
+      offset: 0,
+      semantics: { event_type: "launch_observed", outcome: "unknown" },
+    });
+  }
+
   if (path.endsWith("/cron-jobs") && method === "GET") {
     return jsonResponse(jobs);
   }

@@ -59,6 +59,8 @@
                 <li><a class="dropdown-item" href="#" id="exportJobs">Export</a></li>
                 <li><a class="dropdown-item" href="#" id="importJobs">Import</a></li>
                 <li><a class="dropdown-item" href="#" id="viewCrontab">View Crontab</a></li>
+                <li><a class="dropdown-item" href="#" id="viewExecutionHistory">Execution History</a></li>
+                <li><a class="dropdown-item" href="#" id="viewCrontabHistory">Crontab Change History</a></li>
               </ul>
             </div>
           </div>
@@ -192,6 +194,76 @@
           </div>
           <div class="modal-body">
             <pre id="logOutput" class="modal-output font-console"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Execution History Modal -->
+    <div class="modal fade" id="executionHistoryModal" tabindex="-1" aria-labelledby="executionHistoryModalLabel">
+      <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-uppercase" id="executionHistoryModalLabel">Execution History</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-focus="false">
+              <svg
+                class="align-top"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div id="executionHistoryNotice" class="alert alert-secondary" role="status"></div>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm align-middle">
+                <thead><tr><th>Observed at</th><th>User</th><th>Command</th><th>Event</th><th>Source</th></tr></thead>
+                <tbody id="executionHistoryRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Crontab Change History Modal -->
+    <div class="modal fade" id="crontabHistoryModal" tabindex="-1" aria-labelledby="crontabHistoryModalLabel">
+      <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-uppercase" id="crontabHistoryModalLabel">Crontab Change History</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-focus="false">
+              <svg class="align-top" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div id="crontabHistoryNotice" class="alert alert-secondary" role="status"></div>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm align-middle">
+                <thead><tr><th>Started</th><th>Change</th><th>Outcome</th><th>Action</th></tr></thead>
+                <tbody id="crontabHistoryRows"></tbody>
+              </table>
+            </div>
+            <section id="crontabChangeDetail" class="border-top pt-3 mt-3 d-none">
+              <h6 id="crontabChangeTitle"></h6>
+              <p id="crontabChangeMeta" class="small text-muted"></p>
+              <pre id="crontabChangeDiff" class="modal-output font-console"></pre>
+              <button id="previewRollback" type="button" class="btn btn-sm btn-dark">Preview rollback</button>
+              <div id="rollbackPreviewPanel" class="mt-3 d-none">
+                <div id="rollbackPreviewNotice" class="alert alert-warning" role="status"></div>
+                <pre id="rollbackPreviewDiff" class="modal-output font-console"></pre>
+                <button id="confirmRollback" type="button" class="btn btn-sm btn-danger" disabled>Apply exact restore</button>
+              </div>
+            </section>
           </div>
         </div>
       </div>

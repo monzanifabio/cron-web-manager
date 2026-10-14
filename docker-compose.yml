@@ -5,13 +5,23 @@ services:
       - "8000:8000"
     environment:
       # Set API_KEY to require authentication. Leave empty to skip auth (dev mode).
-      - API_KEY=${API_KEY:-}
+      API_KEY: ${API_KEY:-}
+      DATABASE_PATH: ${DATABASE_PATH:-/data/cron-web-manager.sqlite3}
+      # Empty by default. Use docker-compose.cron-logs.yml to mount a host source.
+      CRON_LOG_PATH: ${CRON_LOG_PATH:-}
+      CRON_LOG_POLL_SECONDS: ${CRON_LOG_POLL_SECONDS:-10}
+    volumes:
+      - cron_manager_data:/data
+      # Host cron logs are not mounted unless the optional cron-logs overlay is used.
     restart: unless-stopped
+
     # IMPORTANT: crontab access from inside a container requires sharing the
-    # host's cron spool. On Linux, uncomment and adjust the volume below:
-    #
-    # volumes:
-    #   - /var/spool/cron:/var/spool/cron
+    # host's cron spool. On Linux, add the appropriate bind mount to this
+    # service's volumes list; spool paths vary by distribution, for example:
+    # - /var/spool/cron:/var/spool/cron
     #
     # On macOS, cron jobs are managed by launchd. This Docker setup is primarily
     # intended for Linux hosts where python-crontab can manage user crontabs.
+
+volumes:
+  cron_manager_data:

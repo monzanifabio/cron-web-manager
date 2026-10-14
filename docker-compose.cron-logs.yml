@@ -1,0 +1,13 @@
+# Optional overlay for an explicitly selected host cron log or journald directory.
+# Set CRON_LOG_HOST_PATH and CRON_LOG_GID in the host environment before use.
+services:
+  backend:
+    environment:
+      CRON_LOG_PATH: /host/cron-logs
+    group_add:
+      - "${CRON_LOG_GID:?Set CRON_LOG_GID to a readable host-log group ID}"
+    volumes:
+      - type: bind
+        source: ${CRON_LOG_HOST_PATH:?Set CRON_LOG_HOST_PATH to a host cron log file or journal directory}
+        target: /host/cron-logs
+        read_only: true

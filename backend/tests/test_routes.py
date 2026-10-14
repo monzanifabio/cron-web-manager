@@ -1,10 +1,11 @@
-import sys
 import os
+import sys
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from fastapi.testclient import TestClient  # noqa: E402
+
 from main import app  # noqa: E402
 
 client = TestClient(app)
@@ -58,8 +59,7 @@ def test_update_cron_job_invalid_schedule_returns_400():
         current_cron.__iter__ = MagicMock(return_value=iter([job]))
         current_cron.__str__.return_value = "* * * * * echo hi"
 
-        rollback_cron = MagicMock()
-        mock_ct.side_effect = [current_cron, rollback_cron]
+        mock_ct.return_value = current_cron
 
         response = client.put(
             "/api/cron-jobs",
@@ -68,4 +68,4 @@ def test_update_cron_job_invalid_schedule_returns_400():
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid cron schedule"}
-    rollback_cron.write.assert_called_once()
+    current_cron.write.assert_not_called()
