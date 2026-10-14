@@ -746,7 +746,7 @@ async function loadCrontabHistory() {
       <tr>
         <td class="text-nowrap">${escapeHtml(new Date(item.started_at).toLocaleString())}</td>
         <td><strong>${escapeHtml(item.operation)}</strong><div class="small text-muted">${escapeHtml(item.summary)}</div></td>
-        <td><span class="badge ${item.outcome === "succeeded" ? "text-bg-success" : item.outcome === "failed" ? "text-bg-danger" : "text-bg-secondary"}">${escapeHtml(item.outcome)}</span></td>
+        <td><span class="badge ${item.outcome === "succeeded" ? "badge-success" : item.outcome === "failed" ? "badge-danger" : "text-bg-secondary"}">${escapeHtml(item.outcome)}</span></td>
         <td><button class="btn btn-sm btn-dark" type="button" data-change-detail="${item.id}">View diff</button></td>
       </tr>`).join("");
   } catch (error) {
