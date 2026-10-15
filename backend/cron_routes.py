@@ -1,11 +1,13 @@
+import os
+import subprocess
+from pathlib import Path
+from typing import List, Optional
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from typing import List, Optional
-import subprocess
-import os
-from pathlib import Path
 
 import crontab_utils
+from crontab_audit import audited_change
 
 router = APIRouter(prefix="/api/cron-jobs", tags=["Cron Jobs"])
 
@@ -39,8 +41,12 @@ def list_cron_jobs():
 @router.post("")
 def add_cron_job(job: CronJobCreate):
     try:
-        crontab_utils.add_cron_job(job.dict())
-        return {"status": "added"}
+        _, change_id = audited_change(
+            "add",
+            f"Add {job.comment or job.schedule}",
+            lambda: crontab_utils.add_cron_job(job.model_dump()),
+        )
+        return {"status": "added", "change_id": change_id}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -48,8 +54,12 @@ def add_cron_job(job: CronJobCreate):
 @router.put("")
 def update_cron_job(job: CronJobUpdate):
     try:
-        crontab_utils.update_cron_job(job.index, job.dict())
-        return {"status": "updated"}
+        _, change_id = audited_change(
+            "update",
+            f"Update crontab entry {job.index}",
+            lambda: crontab_utils.update_cron_job(job.index, job.model_dump()),
+        )
+        return {"status": "updated", "change_id": change_id}
     except IndexError:
         raise HTTPException(status_code=404, detail="Invalid index")
     except ValueError as e:
@@ -59,8 +69,12 @@ def update_cron_job(job: CronJobUpdate):
 @router.delete("/{index}")
 def delete_cron_job(index: int):
     try:
-        crontab_utils.remove_cron_job(index)
-        return {"status": "deleted"}
+        _, change_id = audited_change(
+            "delete",
+            f"Delete crontab entry {index}",
+            lambda: crontab_utils.remove_cron_job(index),
+        )
+        return {"status": "deleted", "change_id": change_id}
     except IndexError:
         raise HTTPException(status_code=404, detail="Invalid index")
 
@@ -114,8 +128,12 @@ def get_logs(
 @router.post("/{index}/duplicate")
 def duplicate_cron_job(index: int):
     try:
-        crontab_utils.duplicate_cron_job(index)
-        return {"status": "duplicated"}
+        _, change_id = audited_change(
+            "duplicate",
+            f"Duplicate crontab entry {index}",
+            lambda: crontab_utils.duplicate_cron_job(index),
+        )
+        return {"status": "duplicated", "change_id": change_id}
     except IndexError:
         raise HTTPException(status_code=404, detail="Invalid index")
 
@@ -139,8 +157,12 @@ class CronJobImport(BaseModel):
 def import_cron_jobs(payload: CronJobImport):
     """Endpoint to import cron jobs from a JSON file."""
     try:
-        jobs_to_import = [job.dict() for job in payload.jobs]
-        crontab_utils.import_cron_jobs(jobs_to_import)
-        return {"status": "imported"}
+        jobs_to_import = [job.model_dump() for job in payload.jobs]
+        _, change_id = audited_change(
+            "import",
+            f"Import {len(jobs_to_import)} cron job(s)",
+            lambda: crontab_utils.import_cron_jobs(jobs_to_import),
+        )
+        return {"status": "imported", "change_id": change_id}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -28,4 +28,6 @@ __pycache__/
 *.egg-info/
 .env
 backend/dist/
+/backend/data/
+/backend/*.sqlite3
 /package-lock.json

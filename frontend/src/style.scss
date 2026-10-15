@@ -122,6 +122,98 @@ td {
   word-break: break-word;
 }
 
+.history-cards-header,
+.history-card {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1.15fr) minmax(14rem, 2fr) minmax(6rem, 0.7fr) minmax(7rem, auto);
+  gap: 1rem;
+  align-items: center;
+}
+
+.history-cards-header {
+  background-color: var(--color-surface-dark);
+  padding: 0.5rem 0.75rem;
+}
+
+.history-card-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-card {
+  padding: 1rem;
+  border: 1px solid var(--color-card-border);
+  border-bottom: 0;
+  font-family: var(--font-mono);
+}
+
+.history-card:last-child {
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.history-card:hover {
+  border-color: var(--color-card-border-hover);
+  background-color: var(--color-surface-dark);
+}
+
+.history-card-field {
+  min-width: 0;
+}
+
+.history-card-detail {
+  grid-column: 1 / -1;
+  align-self: stretch;
+  min-width: 0;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-card-border);
+}
+
+.history-card-detail .crontab-diff {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+}
+
+.history-card-detail .crontab-diff .d2h-wrapper {
+  --d2h-dark-bg-color: #202628;
+  --d2h-dark-color: #eeeeee;
+  --d2h-dark-border-color: var(--color-card-border);
+  --d2h-dark-dim-color: var(--color-label-muted);
+  --d2h-dark-line-border-color: var(--color-card-border);
+  --d2h-dark-file-header-bg-color: var(--color-surface-dark);
+  --d2h-dark-file-header-border-color: var(--color-card-border);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.history-card-detail .crontab-diff .d2h-file-diff {
+  overflow-x: auto;
+}
+
+.history-card-detail .crontab-diff .d2h-file-header,
+.history-card-detail .crontab-diff .d2h-diff-table {
+  font-family: var(--font-mono);
+}
+
+.history-card-detail .crontab-diff .d2h-file-wrapper {
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.history-card-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--color-label-muted);
+  letter-spacing: 0.08em;
+}
+
+.history-card-empty {
+  display: block;
+  text-align: center;
+}
+
 .schedule-cell {
   min-width: 12rem;
 }
@@ -279,8 +371,45 @@ td {
 }
 
 @media (max-width: 767.98px) {
-  .cron-cards-header {
+  .cron-cards-header,
+  .history-cards-header {
     display: none;
+  }
+
+  .history-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "change action"
+      "started outcome";
+    gap: 0.9rem 1rem;
+    padding: 0.9rem;
+  }
+
+  .history-card-change {
+    grid-area: change;
+    overflow-wrap: anywhere;
+  }
+
+  .history-card-action {
+    grid-area: action;
+    justify-self: end;
+    align-self: start;
+    text-align: right;
+  }
+
+  .history-card-started {
+    grid-area: started;
+    overflow-wrap: anywhere;
+  }
+
+  .history-card-outcome {
+    grid-area: outcome;
+    justify-self: end;
+    text-align: right;
+  }
+
+  .history-card-empty {
+    grid-column: 1 / -1;
   }
 
   .cron-card {
