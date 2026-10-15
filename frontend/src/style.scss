@@ -491,12 +491,11 @@ td {
   justify-content: space-between;
   gap: 0.75rem;
   max-width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.25rem 0rem;
+  border-top: 1px solid var(--color-success-badge-bg);
+  border-bottom: 1px solid var(--color-success-badge-bg);
   margin-bottom: 1rem;
   overflow: hidden;
-  border: 1px solid var(--color-card-border);
-  border-left: 3px solid var(--accent);
-  background-color: rgba(255, 255, 255, 0.025);
 }
 
 .next-up-main {
@@ -506,7 +505,7 @@ td {
   gap: 0.5rem;
   min-width: 0;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 0.8rem !important;
 }
 
 .next-up-arrows {
@@ -515,6 +514,7 @@ td {
   color: var(--accent);
   font-weight: 700;
   letter-spacing: -0.15em;
+  font-size: 0.8rem;
 }
 
 .next-up-arrows span {
@@ -532,8 +532,9 @@ td {
 
 .next-up-label {
   flex-shrink: 0;
-  color: var(--color-label-muted);
+  color: var(--color-success-badge-text);
   text-transform: uppercase;
+  font-size: 0.8rem;
 }
 
 .next-up-name {
@@ -541,6 +542,7 @@ td {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.8rem;
 }
 
 .next-up-timing {
@@ -549,28 +551,28 @@ td {
   flex-shrink: 0;
   gap: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 0.8rem !important;
   white-space: nowrap;
+}
+
+.next-up-timing span {
+  font-size: 0.8rem;
 }
 
 #nextUpCountdown {
   color: var(--accent);
 }
 
-#nextUpRunAt {
-  color: var(--color-label-muted);
-}
-
 @keyframes next-up-arrow-pulse {
   0%,
   100% {
-    opacity: 0.35;
-    transform: translateX(0);
+    opacity: 0.55;
+    color: rgba(73, 225, 136, 0.55);
   }
 
   50% {
     opacity: 1;
-    transform: translateX(2px);
+    color: var(--accent);
   }
 }
 

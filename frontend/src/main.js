@@ -23,21 +23,23 @@ function getScheduleDescription(schedule) {
 const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 
 function findNextScheduledJob(jobs, now = new Date()) {
-  return jobs
-    .filter((job) => job.enabled && job.schedule?.trim().toLowerCase() !== "@reboot")
-    .map((job) => {
-      try {
-        const expression = CronExpressionParser.parse(convertSpecialToClassic(job.schedule), {
-          currentDate: now,
-          tz: browserTimeZone,
-        });
-        return { job, nextRun: expression.next().toDate() };
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean)
-    .sort((first, second) => first.nextRun - second.nextRun)[0] || null;
+  return (
+    jobs
+      .filter((job) => job.enabled && job.schedule?.trim().toLowerCase() !== "@reboot")
+      .map((job) => {
+        try {
+          const expression = CronExpressionParser.parse(convertSpecialToClassic(job.schedule), {
+            currentDate: now,
+            tz: browserTimeZone,
+          });
+          return { job, nextRun: expression.next().toDate() };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .sort((first, second) => first.nextRun - second.nextRun)[0] || null
+  );
 }
 
 function formatTimeUntil(nextRun, now) {
@@ -58,7 +60,6 @@ function updateNextUp(jobs) {
   const nameElement = document.getElementById("nextUpName");
   const timing = document.getElementById("nextUpTiming");
   const countdown = document.getElementById("nextUpCountdown");
-  const runAt = document.getElementById("nextUpRunAt");
   if (!jobs.some((job) => job.enabled)) {
     nameElement.textContent = "No active scheduled jobs";
     nameElement.title = "";
@@ -79,12 +80,6 @@ function updateNextUp(jobs) {
   nameElement.textContent = name;
   nameElement.title = name;
   countdown.textContent = formatTimeUntil(next.nextRun, now);
-  runAt.textContent = new Intl.DateTimeFormat(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: browserTimeZone,
-  }).format(next.nextRun);
   timing.classList.remove("d-none");
 }
 
@@ -147,11 +142,13 @@ const modals = {
 };
 
 // Add modal hide event listeners
-["addModal", "editModal", "deleteModal", "crontabModal", "executionHistoryModal", "crontabHistoryModal"].forEach((modalId) => {
-  document.getElementById(modalId).addEventListener("hidden.bs.modal", () => {
-    document.querySelector("[data-refresh]").focus();
-  });
-});
+["addModal", "editModal", "deleteModal", "crontabModal", "executionHistoryModal", "crontabHistoryModal"].forEach(
+  (modalId) => {
+    document.getElementById(modalId).addEventListener("hidden.bs.modal", () => {
+      document.querySelector("[data-refresh]").focus();
+    });
+  }
+);
 
 async function loadHostname() {
   try {
@@ -198,13 +195,17 @@ async function loadHealthStatus() {
 loadHealthStatus();
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  })[character]);
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[character]
+  );
 }
 
 function showAppError(message) {
@@ -785,7 +786,8 @@ async function viewExecutionHistory() {
     const data = await response.json();
     const monitor = data.monitoring || {};
     if (!monitor.enabled) {
-      notice.textContent = "Cron log monitoring is disabled. Set CRON_LOG_PATH to a readable host cron log to collect launch events. Scheduled jobs and CRUD remain available.";
+      notice.textContent =
+        "Cron log monitoring is disabled. Set CRON_LOG_PATH to a readable host cron log to collect launch events. Scheduled jobs and CRUD remain available.";
     } else if (!monitor.available) {
       notice.textContent = `Cron log monitoring is unavailable: ${monitor.error || "log file not readable"}. Scheduled jobs and CRUD remain available.`;
     } else {
@@ -795,14 +797,18 @@ async function viewExecutionHistory() {
       rows.innerHTML = '<tr><td colspan="5" class="text-muted">No cron launch events recorded yet.</td></tr>';
       return;
     }
-    rows.innerHTML = data.items.map((item) => `
+    rows.innerHTML = data.items
+      .map(
+        (item) => `
       <tr>
         <td class="text-nowrap">${escapeHtml(new Date(item.observed_at).toLocaleString())}</td>
         <td>${escapeHtml(item.username)}</td>
         <td><code class="text-break">${escapeHtml(item.command)}</code></td>
         <td><span class="badge text-bg-secondary">Launch observed · result unknown</span></td>
         <td class="text-break">${escapeHtml(item.source_path)}</td>
-      </tr>`).join("");
+      </tr>`
+      )
+      .join("");
   } catch (error) {
     notice.textContent = `Could not load execution history: ${error.message}`;
     rows.innerHTML = '<tr><td colspan="5" class="text-danger">History is unavailable.</td></tr>';
@@ -890,8 +896,11 @@ async function loadCrontabHistory() {
       rows.innerHTML = '<div class="history-card history-card-empty text-muted text-center">No changes recorded.</div>';
       return;
     }
-    notice.textContent = "Snapshots are exact crontab text. Rollback is available only while the live crontab still matches that change's after snapshot.";
-    rows.innerHTML = data.items.map((item) => `
+    notice.textContent =
+      "Snapshots are exact crontab text. Rollback is available only while the live crontab still matches that change's after snapshot.";
+    rows.innerHTML = data.items
+      .map(
+        (item) => `
       <article class="history-card" data-change-card="${item.id}">
         <div class="history-card-field history-card-started">
           <span class="history-card-label d-md-none">Started</span>
@@ -909,7 +918,9 @@ async function loadCrontabHistory() {
           <span class="history-card-label d-md-none">Action</span>
           <button class="btn btn-sm btn-dark" type="button" data-change-detail="${item.id}" aria-controls="crontabChangeDetail" aria-expanded="false">View diff</button>
         </div>
-      </article>`).join("");
+      </article>`
+      )
+      .join("");
   } catch (error) {
     notice.textContent = `Could not load crontab history: ${error.message}`;
     rows.innerHTML = '<div class="history-card history-card-empty text-danger">History is unavailable.</div>';
@@ -925,14 +936,16 @@ async function showCrontabChange(changeId) {
   document.getElementById("crontabChangeTitle").textContent = `#${change.id} · ${change.summary}`;
   const beforeState = change.before_exists === null ? "unknown" : change.before_exists ? "present" : "absent";
   const afterState = change.after_exists === null ? "unknown" : change.after_exists ? "present" : "absent";
-  const recoveryNote = change.after_snapshot_source === "recovery_observation"
-    ? " · current state observed during recovery, not confirmed as this operation's result"
-    : "";
-  document.getElementById("crontabChangeMeta").textContent = `${change.operation} · ${change.outcome} · crontab ${beforeState} → ${afterState}${recoveryNote} · ${new Date(change.started_at).toLocaleString()}${change.error ? ` · ${change.error}` : ""}`;
+  const recoveryNote =
+    change.after_snapshot_source === "recovery_observation"
+      ? " · current state observed during recovery, not confirmed as this operation's result"
+      : "";
+  document.getElementById("crontabChangeMeta").textContent =
+    `${change.operation} · ${change.outcome} · crontab ${beforeState} → ${afterState}${recoveryNote} · ${new Date(change.started_at).toLocaleString()}${change.error ? ` · ${change.error}` : ""}`;
   renderCrontabDiff(
     document.getElementById("crontabChangeDiff"),
     change.diff,
-    "No text diff (the crontab may have been empty or unchanged).",
+    "No text diff (the crontab may have been empty or unchanged)."
   );
 
   const card = document.querySelector(`[data-change-card="${id}"]`);
@@ -982,7 +995,7 @@ document.getElementById("previewRollback").addEventListener("click", async () =>
     renderCrontabDiff(
       diff,
       result.diff,
-      `No text difference. Restore target crontab is ${result.target_exists ? "present" : "absent"}.`,
+      `No text difference. Restore target crontab is ${result.target_exists ? "present" : "absent"}.`
     );
     confirm.disabled = !result.can_rollback;
   } catch (error) {
@@ -1003,7 +1016,8 @@ document.getElementById("confirmRollback").addEventListener("click", async () =>
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.detail || `Server error: ${response.status}`);
-    document.getElementById("crontabHistoryNotice").textContent = "Exact snapshot restored and verified. A new rollback history entry was recorded.";
+    document.getElementById("crontabHistoryNotice").textContent =
+      "Exact snapshot restored and verified. A new rollback history entry was recorded.";
     await loadCrontabHistory();
     await showCrontabChange(result.change_id);
   } catch (error) {
