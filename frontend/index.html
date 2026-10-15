@@ -10,8 +10,22 @@
     <div class="container vh-100 d-flex flex-column">
       <!-- Header Section -->
       <div class="header-section flex-shrink-0">
-        <div class="d-flex justify-content-between align-items-center pt-2 mt-3 border-top border-white text-uppercase">
-          <h5 class="m-0">Cron Jobs</h5>
+        <div
+          class="d-flex justify-content-between align-items-center py-2 mt-3 border-top border-bottom border-white text-uppercase"
+        >
+          <div class="d-flex flex-row gap-2 align-items-center">
+            <svg width="20" height="20" viewBox="0 0 233 233" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="83" y="166" width="67" height="67" fill="white" />
+              <path d="M166 166H233L166 233V166Z" fill="white" />
+              <path d="M0 166H67V233L0 166Z" fill="white" />
+              <rect y="83" width="67" height="67" fill="white" />
+              <rect x="83" y="83" width="67" height="67" rx="33.5" fill="white" />
+              <path d="M67 0V67H0L67 0Z" fill="white" />
+              <rect x="83" width="67" height="67" fill="white" />
+              <path d="M166 0L233 67H166V0Z" fill="white" />
+            </svg>
+            <h5 class="m-0">Cronos</h5>
+          </div>
           <button class="btn btn-sm" data-refresh>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -224,7 +238,15 @@
             <div id="executionHistoryNotice" class="alert alert-secondary" role="status"></div>
             <div class="table-responsive">
               <table class="table table-dark table-sm align-middle">
-                <thead><tr><th>Observed at</th><th>User</th><th>Command</th><th>Event</th><th>Source</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Observed at</th>
+                    <th>User</th>
+                    <th>Command</th>
+                    <th>Event</th>
+                    <th>Source</th>
+                  </tr>
+                </thead>
                 <tbody id="executionHistoryRows"></tbody>
               </table>
             </div>
@@ -240,8 +262,17 @@
           <div class="modal-header">
             <h5 class="modal-title text-uppercase" id="crontabHistoryModalLabel">Crontab Change History</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-focus="false">
-              <svg class="align-top" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"></path>
+              <svg
+                class="align-top"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"
+                ></path>
               </svg>
             </button>
           </div>
@@ -265,7 +296,9 @@
                 <div id="rollbackPreviewPanel" class="mt-3 d-none">
                   <div id="rollbackPreviewNotice" class="alert alert-warning" role="status"></div>
                   <div id="rollbackPreviewDiff" class="crontab-diff"></div>
-                  <button id="confirmRollback" type="button" class="btn btn-sm btn-danger" disabled>Apply exact restore</button>
+                  <button id="confirmRollback" type="button" class="btn btn-sm btn-danger" disabled>
+                    Apply exact restore
+                  </button>
                 </div>
               </section>
             </div>
