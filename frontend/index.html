@@ -69,6 +69,17 @@
 
       <!-- Table Section -->
       <div class="table-section">
+        <section class="next-up-panel" aria-label="Next scheduled cron job">
+          <div class="next-up-main">
+            <span class="next-up-arrows" aria-hidden="true"><span>&gt;</span><span>&gt;</span><span>&gt;</span></span>
+            <span class="next-up-label">Next:</span>
+            <span id="nextUpName" class="next-up-name">Finding the next scheduled job…</span>
+          </div>
+          <div id="nextUpTiming" class="next-up-timing d-none">
+            <span id="nextUpCountdown"></span>
+            <span>(<time id="nextUpRunAt"></time>)</span>
+          </div>
+        </section>
         <div class="table-filters d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center mb-3">
           <div class="job-search-wrap">
             <input

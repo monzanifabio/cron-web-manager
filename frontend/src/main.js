@@ -19,6 +19,75 @@ function getScheduleDescription(schedule) {
     return "";
   }
 }
+
+const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
+function findNextScheduledJob(jobs, now = new Date()) {
+  return jobs
+    .filter((job) => job.enabled && job.schedule?.trim().toLowerCase() !== "@reboot")
+    .map((job) => {
+      try {
+        const expression = CronExpressionParser.parse(convertSpecialToClassic(job.schedule), {
+          currentDate: now,
+          tz: browserTimeZone,
+        });
+        return { job, nextRun: expression.next().toDate() };
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean)
+    .sort((first, second) => first.nextRun - second.nextRun)[0] || null;
+}
+
+function formatTimeUntil(nextRun, now) {
+  const totalMinutes = Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60_000));
+  if (totalMinutes === 0) return "in less than a minute";
+
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  const parts = [];
+  if (days) parts.push(`${days}d`);
+  if (hours) parts.push(`${hours}h`);
+  if (minutes && !days) parts.push(`${minutes}m`);
+  return `in ${parts.join(" ")}`;
+}
+
+function updateNextUp(jobs) {
+  const nameElement = document.getElementById("nextUpName");
+  const timing = document.getElementById("nextUpTiming");
+  const countdown = document.getElementById("nextUpCountdown");
+  const runAt = document.getElementById("nextUpRunAt");
+  if (!jobs.some((job) => job.enabled)) {
+    nameElement.textContent = "No active scheduled jobs";
+    nameElement.title = "";
+    timing.classList.add("d-none");
+    return;
+  }
+
+  const now = new Date();
+  const next = findNextScheduledJob(jobs, now);
+  if (!next) {
+    nameElement.textContent = "No upcoming timed run";
+    nameElement.title = "";
+    timing.classList.add("d-none");
+    return;
+  }
+
+  const name = next.job.comment?.trim() || next.job.command || "Unnamed cron job";
+  nameElement.textContent = name;
+  nameElement.title = name;
+  countdown.textContent = formatTimeUntil(next.nextRun, now);
+  runAt.textContent = new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: browserTimeZone,
+  }).format(next.nextRun);
+  timing.classList.remove("d-none");
+}
+
 // Set app version in footer
 document.addEventListener("DOMContentLoaded", () => {
   const versionElement = document.getElementById("appVersion");
@@ -30,6 +99,7 @@ import "/src/style.scss";
 import * as bootstrap from "bootstrap";
 import cronstrue from "cronstrue";
 import cronValidate from "cron-validate";
+import { CronExpressionParser } from "cron-parser";
 import { html as renderDiff } from "diff2html";
 import "diff2html/bundles/css/diff2html.min.css";
 import { mockFetch } from "/src/mockApi.js";
@@ -159,6 +229,7 @@ const jobSearchInput = document.getElementById("jobSearchInput");
 const jobStatusFilter = document.getElementById("jobStatusFilter");
 
 let allJobs = [];
+let jobsLoaded = false;
 
 function isTypingTarget(element) {
   if (!element) {
@@ -290,9 +361,14 @@ async function loadJobs() {
     const res = await apiFetch(`${API_BASE}/cron-jobs`);
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
     allJobs = await res.json();
+    jobsLoaded = true;
+    updateNextUp(allJobs);
     countJobsByStatus(allJobs);
     applyJobFilters();
   } catch (err) {
+    jobsLoaded = false;
+    document.getElementById("nextUpName").textContent = "Could not load scheduled jobs — refresh to try again";
+    document.getElementById("nextUpTiming").classList.add("d-none");
     jobList.innerHTML = `<div class="cron-card cron-card-error text-danger text-center py-3">Failed to load jobs. ${err.message}</div>`;
   }
 }
@@ -479,8 +555,11 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
 // Add event listener for refresh button
 document.querySelector("[data-refresh]").addEventListener("click", loadJobs);
 
-// Initial load
+// Initial load and periodic countdown refresh
 loadJobs();
+window.setInterval(() => {
+  if (jobsLoaded) updateNextUp(allJobs);
+}, 30_000);
 
 async function loadLogs(logPath, lines = 100) {
   const logElement = document.getElementById("logOutput");

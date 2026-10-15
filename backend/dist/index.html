@@ -5,8 +5,8 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cron Manager</title>
-    <script type="module" crossorigin src="/assets/index-_nekWVxH.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Ch1S2RTy.css">
+    <script type="module" crossorigin src="/assets/index-CAmPkXpO.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BQ4FeyGx.css">
   </head>
   <body>
     <div class="container vh-100 d-flex flex-column">
@@ -71,6 +71,17 @@
 
       <!-- Table Section -->
       <div class="table-section">
+        <section class="next-up-panel" aria-label="Next scheduled cron job">
+          <div class="next-up-main">
+            <span class="next-up-arrows" aria-hidden="true"><span>&gt;</span><span>&gt;</span><span>&gt;</span></span>
+            <span class="next-up-label">Next:</span>
+            <span id="nextUpName" class="next-up-name">Finding the next scheduled job…</span>
+          </div>
+          <div id="nextUpTiming" class="next-up-timing d-none">
+            <span id="nextUpCountdown"></span>
+            <span>(<time id="nextUpRunAt"></time>)</span>
+          </div>
+        </section>
         <div class="table-filters d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center mb-3">
           <div class="job-search-wrap">
             <input
