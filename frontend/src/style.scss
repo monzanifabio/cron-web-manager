@@ -485,8 +485,109 @@ td {
   }
 }
 
-.table-section {
+.next-up-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 100%;
+  padding: 0.25rem 0rem;
+  border-top: 1px solid var(--color-success-badge-bg);
+  border-bottom: 1px solid var(--color-success-badge-bg);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.next-up-main {
+  display: flex;
+  align-items: center;
   flex: 1;
+  gap: 0.5rem;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem !important;
+}
+
+.next-up-arrows {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: -0.15em;
+  font-size: 0.8rem;
+}
+
+.next-up-arrows span {
+  display: inline-block;
+  animation: next-up-arrow-pulse 1.2s ease-in-out infinite;
+}
+
+.next-up-arrows span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.next-up-arrows span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.next-up-label {
+  flex-shrink: 0;
+  color: var(--color-success-badge-text);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.next-up-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.next-up-timing {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem !important;
+  white-space: nowrap;
+}
+
+.next-up-timing span {
+  font-size: 0.8rem;
+}
+
+#nextUpCountdown {
+  color: var(--accent);
+}
+
+@keyframes next-up-arrow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    color: rgba(73, 225, 136, 0.55);
+  }
+
+  50% {
+    opacity: 1;
+    color: var(--accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .next-up-arrows span {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.table-section {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
   overflow: hidden;
   position: relative;
 }
@@ -529,7 +630,8 @@ td {
 }
 
 .table-container {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
 }
