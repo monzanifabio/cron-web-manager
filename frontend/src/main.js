@@ -30,10 +30,26 @@ import "/src/style.scss";
 import * as bootstrap from "bootstrap";
 import cronstrue from "cronstrue";
 import cronValidate from "cron-validate";
+import { html as renderDiff } from "diff2html";
+import "diff2html/bundles/css/diff2html.min.css";
 import { mockFetch } from "/src/mockApi.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const apiFetch = import.meta.env.VITE_USE_MOCK_DATA === "true" ? mockFetch : fetch;
+
+function renderCrontabDiff(container, diff, emptyMessage) {
+  if (!diff) {
+    container.textContent = emptyMessage;
+    return;
+  }
+  container.innerHTML = renderDiff(diff, {
+    drawFileList: false,
+    matching: "lines",
+    outputFormat: "line-by-line",
+    diffStyle: "word",
+    colorScheme: "dark",
+  });
+}
 
 // Initialize modals with focus options
 const modals = {
@@ -722,14 +738,68 @@ document.getElementById("viewExecutionHistory").addEventListener("click", (event
 let selectedCrontabChangeId = null;
 let rollbackPreview = null;
 
+function animateHistoryDetail(detail, keyframes) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof detail.animate !== "function") {
+    return Promise.resolve();
+  }
+  const animation = detail.animate(keyframes, {
+    duration: 220,
+    easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+  });
+  return animation.finished.catch(() => {});
+}
+
+async function closeCrontabChangeDetail(animate = true) {
+  const detail = document.getElementById("crontabChangeDetail");
+  const parking = document.getElementById("crontabHistoryDetailParking");
+  if (!detail || !parking) return;
+
+  const isOpen = !detail.classList.contains("d-none") && detail.parentElement !== parking;
+  const openButton = detail.closest(".history-card")?.querySelector("[data-change-detail]");
+  if (isOpen && animate) {
+    const height = detail.offsetHeight;
+    detail.style.height = `${height}px`;
+    detail.style.opacity = "1";
+    detail.style.overflow = "hidden";
+    await animateHistoryDetail(detail, [
+      { height: `${height}px`, opacity: 1 },
+      { height: "0px", opacity: 0 },
+    ]);
+  }
+  if (openButton) {
+    openButton.textContent = "View diff";
+    openButton.setAttribute("aria-expanded", "false");
+  }
+  parking.appendChild(detail);
+  detail.classList.add("d-none");
+  detail.style.height = "";
+  detail.style.opacity = "";
+  detail.style.overflow = "";
+  document.getElementById("rollbackPreviewPanel").classList.add("d-none");
+  rollbackPreview = null;
+  selectedCrontabChangeId = null;
+}
+
+async function openCrontabChangeDetail(detail) {
+  detail.style.height = "0px";
+  detail.style.opacity = "0";
+  detail.style.overflow = "hidden";
+  const height = detail.scrollHeight;
+  await animateHistoryDetail(detail, [
+    { height: "0px", opacity: 0 },
+    { height: `${height}px`, opacity: 1 },
+  ]);
+  detail.style.height = "auto";
+  detail.style.opacity = "";
+  detail.style.overflow = "";
+}
+
 async function loadCrontabHistory() {
   const notice = document.getElementById("crontabHistoryNotice");
   const rows = document.getElementById("crontabHistoryRows");
   notice.textContent = "Loading exact crontab change history…";
+  await closeCrontabChangeDetail(false);
   rows.innerHTML = "";
-  document.getElementById("crontabChangeDetail").classList.add("d-none");
-  document.getElementById("rollbackPreviewPanel").classList.add("d-none");
-  rollbackPreview = null;
   modals.crontabHistory.show();
 
   try {
@@ -738,28 +808,39 @@ async function loadCrontabHistory() {
     const data = await response.json();
     if (!data.items.length) {
       notice.textContent = "No app-driven crontab changes have been recorded yet.";
-      rows.innerHTML = '<tr><td colspan="4" class="text-muted">No changes recorded.</td></tr>';
+      rows.innerHTML = '<div class="history-card history-card-empty text-muted text-center">No changes recorded.</div>';
       return;
     }
     notice.textContent = "Snapshots are exact crontab text. Rollback is available only while the live crontab still matches that change's after snapshot.";
     rows.innerHTML = data.items.map((item) => `
-      <tr>
-        <td class="text-nowrap">${escapeHtml(new Date(item.started_at).toLocaleString())}</td>
-        <td><strong>${escapeHtml(item.operation)}</strong><div class="small text-muted">${escapeHtml(item.summary)}</div></td>
-        <td><span class="badge ${item.outcome === "succeeded" ? "badge-success" : item.outcome === "failed" ? "badge-danger" : "text-bg-secondary"}">${escapeHtml(item.outcome)}</span></td>
-        <td><button class="btn btn-sm btn-dark" type="button" data-change-detail="${item.id}">View diff</button></td>
-      </tr>`).join("");
+      <article class="history-card" data-change-card="${item.id}">
+        <div class="history-card-field history-card-started">
+          <span class="history-card-label d-md-none">Started</span>
+          ${escapeHtml(new Date(item.started_at).toLocaleString())}
+        </div>
+        <div class="history-card-field history-card-change">
+          <span class="history-card-label d-md-none">Change</span>
+          <strong>${escapeHtml(item.operation)}</strong><div class="small text-muted">${escapeHtml(item.summary)}</div>
+        </div>
+        <div class="history-card-field history-card-outcome">
+          <span class="history-card-label d-md-none">Outcome</span>
+          <span class="badge ${item.outcome === "succeeded" ? "badge-success" : item.outcome === "failed" ? "badge-danger" : "text-bg-secondary"}">${escapeHtml(item.outcome)}</span>
+        </div>
+        <div class="history-card-field history-card-action">
+          <span class="history-card-label d-md-none">Action</span>
+          <button class="btn btn-sm btn-dark" type="button" data-change-detail="${item.id}" aria-controls="crontabChangeDetail" aria-expanded="false">View diff</button>
+        </div>
+      </article>`).join("");
   } catch (error) {
     notice.textContent = `Could not load crontab history: ${error.message}`;
-    rows.innerHTML = '<tr><td colspan="4" class="text-danger">History is unavailable.</td></tr>';
+    rows.innerHTML = '<div class="history-card history-card-empty text-danger">History is unavailable.</div>';
   }
 }
 
 async function showCrontabChange(changeId) {
-  selectedCrontabChangeId = Number(changeId);
-  rollbackPreview = null;
-  document.getElementById("rollbackPreviewPanel").classList.add("d-none");
-  const response = await apiFetch(`${API_BASE}/crontab-history/${selectedCrontabChangeId}`);
+  await closeCrontabChangeDetail();
+  const id = Number(changeId);
+  const response = await apiFetch(`${API_BASE}/crontab-history/${id}`);
   if (!response.ok) throw new Error(`Server error: ${response.status}`);
   const change = await response.json();
   document.getElementById("crontabChangeTitle").textContent = `#${change.id} · ${change.summary}`;
@@ -769,13 +850,32 @@ async function showCrontabChange(changeId) {
     ? " · current state observed during recovery, not confirmed as this operation's result"
     : "";
   document.getElementById("crontabChangeMeta").textContent = `${change.operation} · ${change.outcome} · crontab ${beforeState} → ${afterState}${recoveryNote} · ${new Date(change.started_at).toLocaleString()}${change.error ? ` · ${change.error}` : ""}`;
-  document.getElementById("crontabChangeDiff").textContent = change.diff || "No text diff (the crontab may have been empty or unchanged).";
-  document.getElementById("crontabChangeDetail").classList.remove("d-none");
+  renderCrontabDiff(
+    document.getElementById("crontabChangeDiff"),
+    change.diff,
+    "No text diff (the crontab may have been empty or unchanged).",
+  );
+
+  const card = document.querySelector(`[data-change-card="${id}"]`);
+  if (!card) return;
+  selectedCrontabChangeId = id;
+  const detail = document.getElementById("crontabChangeDetail");
+  card.appendChild(detail);
+  detail.classList.remove("d-none");
+  const button = card.querySelector("[data-change-detail]");
+  button.textContent = "Hide diff";
+  button.setAttribute("aria-expanded", "true");
+  await openCrontabChangeDetail(detail);
 }
 
 document.getElementById("crontabHistoryRows").addEventListener("click", async (event) => {
   const button = event.target.closest("[data-change-detail]");
   if (!button) return;
+  const detail = document.getElementById("crontabChangeDetail");
+  if (detail.parentElement === button.closest(".history-card")) {
+    await closeCrontabChangeDetail();
+    return;
+  }
   try {
     await showCrontabChange(button.dataset.changeDetail);
   } catch (error) {
@@ -800,7 +900,11 @@ document.getElementById("previewRollback").addEventListener("click", async () =>
     notice.textContent = result.can_rollback
       ? `Fresh-state check passed. Review this exact diff before restoring a ${result.target_exists ? "present" : "absent"} crontab.`
       : result.reason || "Rollback is unavailable.";
-    diff.textContent = result.diff || `No text difference. Restore target crontab is ${result.target_exists ? "present" : "absent"}.`;
+    renderCrontabDiff(
+      diff,
+      result.diff,
+      `No text difference. Restore target crontab is ${result.target_exists ? "present" : "absent"}.`,
+    );
     confirm.disabled = !result.can_rollback;
   } catch (error) {
     rollbackPreview = null;
