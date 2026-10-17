@@ -42,6 +42,7 @@ body {
 
 body {
   font-family: var(--font-primary);
+  background-color: #17191c;
 }
 
 .small {
@@ -491,11 +492,10 @@ td {
   justify-content: space-between;
   gap: 0.75rem;
   max-width: 100%;
-  padding: 0.25rem 0rem;
-  border-top: 1px solid var(--color-success-badge-bg);
-  border-bottom: 1px solid var(--color-success-badge-bg);
+  padding: 0.5rem 0.75rem;
   margin-bottom: 1rem;
   overflow: hidden;
+  background: linear-gradient(90deg, rgba(73, 225, 136, 0.1) 0%, rgba(73, 225, 136, 0) 100%);
 }
 
 .next-up-main {
