@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "start:prod": "sh ./scripts/start-prod.sh"
+    "start:prod": "sh ./scripts/start-prod.sh",
+    "start:built": "sh ./scripts/start-built.sh"
   }
 }
