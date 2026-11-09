@@ -46,6 +46,8 @@ npm run start:prod
 
 This command builds the frontend into `backend/dist/` and then starts the FastAPI app from `backend/`. The backend serves the compiled frontend from `backend/dist/` at the root path.
 
+To rebuild the frontend without starting the backend, run `npm run build` from the repository root. If `start:built` is already running, refresh the page after the build completes to load the updated frontend.
+
 To start the app using the current contents of `backend/dist/` without rebuilding the frontend, run:
 
 ```bash
