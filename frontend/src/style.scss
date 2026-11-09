@@ -486,6 +486,70 @@ td {
   }
 }
 
+.cron-timeline {
+  padding: 0.35rem 0 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.cron-timeline-heading,
+.cron-timeline-scale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+}
+
+.cron-timeline-title {
+  margin: 0;
+  color: var(--color-white);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.cron-timeline-range,
+.cron-timeline-scale {
+  color: var(--color-label-muted);
+  font-size: 0.7rem;
+}
+
+.cron-timeline-slots {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.cron-timeline-minute {
+  display: block;
+  flex: 0 0 4px;
+  width: 4px;
+  min-width: 4px;
+  height: 32px;
+  background-color: #343a40;
+}
+
+.cron-timeline-minute.level-low {
+  background-color: #0e4429;
+}
+
+.cron-timeline-minute.level-medium {
+  background-color: #006d32;
+}
+
+.cron-timeline-minute.level-high {
+  background-color: #26a641;
+}
+
+.cron-timeline-minute.level-max {
+  background-color: var(--accent);
+}
+
+.cron-timeline-scale {
+  margin-top: 0.25rem;
+}
+
 .next-up-panel {
   display: flex;
   align-items: center;
@@ -623,9 +687,16 @@ td {
   pointer-events: none;
 }
 
+.job-filter-controls {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .table-filters #jobStatusFilter {
-  flex: 0 1 20%;
-  width: clamp(10rem, 18%, 13rem);
+  flex: 1 1 auto;
+  width: auto;
   min-width: 10rem;
 }
 
@@ -654,8 +725,13 @@ td {
     right: 0.65rem;
   }
 
-  .table-filters #jobStatusFilter {
+  .job-filter-controls {
     width: 100%;
+  }
+
+  .table-filters #jobStatusFilter {
+    flex: 1 1 auto;
+    width: auto;
     min-width: 0;
   }
 }

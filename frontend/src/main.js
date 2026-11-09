@@ -42,6 +42,47 @@ function findNextScheduledJob(jobs, now = new Date()) {
   );
 }
 
+function updateCronTimeline(jobs, now = new Date()) {
+  const timeline = document.getElementById("cronTimeline");
+  const range = document.getElementById("cronTimelineRange");
+  const firstMinute = new Date(now);
+  firstMinute.setSeconds(0, 0);
+  firstMinute.setMinutes(firstMinute.getMinutes() + 1);
+  const counts = Array(60).fill(0);
+  const lastMinute = new Date(firstMinute.getTime() + 59 * 60_000);
+
+  jobs
+    .filter((job) => job.enabled && job.schedule?.trim().toLowerCase() !== "@reboot")
+    .forEach((job) => {
+      try {
+        const expression = CronExpressionParser.parse(convertSpecialToClassic(job.schedule), {
+          currentDate: new Date(firstMinute.getTime() - 1),
+          tz: browserTimeZone,
+        });
+        let nextRun = expression.next().toDate();
+        while (nextRun <= lastMinute) {
+          const minuteIndex = Math.floor((nextRun.getTime() - firstMinute.getTime()) / 60_000);
+          if (minuteIndex >= 0 && minuteIndex < counts.length) counts[minuteIndex] += 1;
+          nextRun = expression.next().toDate();
+        }
+      } catch {
+        // Ignore invalid schedules, matching the next-job display behavior.
+      }
+    });
+
+  const levels = ["none", "low", "medium", "high", "max"];
+  timeline.innerHTML = counts
+    .map((count, index) => {
+      const level = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : count <= 7 ? 3 : 4;
+      const time = new Date(firstMinute.getTime() + index * 60_000);
+      const label = `${time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}: ${count} ${count === 1 ? "job" : "jobs"}`;
+      return `<span class="cron-timeline-minute level-${levels[level]}" title="${label}" aria-hidden="true"></span>`;
+    })
+    .join("");
+  timeline.setAttribute("aria-label", `Scheduled jobs during the next hour: ${counts.reduce((sum, count) => sum + count, 0)} total runs`);
+  range.textContent = `${firstMinute.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(lastMinute.getTime() + 60_000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+}
+
 function formatTimeUntil(nextRun, now) {
   const totalMinutes = Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60_000));
   if (totalMinutes === 0) return "in less than a minute";
@@ -364,6 +405,7 @@ async function loadJobs() {
     allJobs = await res.json();
     jobsLoaded = true;
     updateNextUp(allJobs);
+    updateCronTimeline(allJobs);
     countJobsByStatus(allJobs);
     applyJobFilters();
   } catch (err) {
@@ -561,6 +603,16 @@ loadJobs();
 window.setInterval(() => {
   if (jobsLoaded) updateNextUp(allJobs);
 }, 30_000);
+
+function scheduleMinuteRefresh() {
+  const now = new Date();
+  const delay = 60_000 - (now.getSeconds() * 1_000 + now.getMilliseconds());
+  window.setTimeout(() => {
+    if (jobsLoaded) updateCronTimeline(allJobs);
+    scheduleMinuteRefresh();
+  }, delay);
+}
+scheduleMinuteRefresh();
 
 async function loadLogs(logPath, lines = 100) {
   const logElement = document.getElementById("logOutput");
