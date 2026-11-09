@@ -42,28 +42,52 @@ function findNextScheduledJob(jobs, now = new Date()) {
   );
 }
 
-function formatTimeUntil(nextRun, now) {
-  const totalMinutes = Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60_000));
-  if (totalMinutes === 0) return "in less than a minute";
+function updateCronTimeline(jobs, now = new Date()) {
+  const timeline = document.getElementById("cronTimeline");
+  const range = document.getElementById("cronTimelineRange");
+  const firstMinute = new Date(now);
+  firstMinute.setSeconds(0, 0);
+  firstMinute.setMinutes(firstMinute.getMinutes() + 1);
+  const counts = Array(60).fill(0);
+  const lastMinute = new Date(firstMinute.getTime() + 59 * 60_000);
 
-  const days = Math.floor(totalMinutes / 1440);
-  const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = totalMinutes % 60;
-  const parts = [];
-  if (days) parts.push(`${days}d`);
-  if (hours) parts.push(`${hours}h`);
-  if (minutes && !days) parts.push(`${minutes}m`);
-  return `in ${parts.join(" ")}`;
+  jobs
+    .filter((job) => job.enabled && job.schedule?.trim().toLowerCase() !== "@reboot")
+    .forEach((job) => {
+      try {
+        const expression = CronExpressionParser.parse(convertSpecialToClassic(job.schedule), {
+          currentDate: new Date(firstMinute.getTime() - 1),
+          tz: browserTimeZone,
+        });
+        let nextRun = expression.next().toDate();
+        while (nextRun <= lastMinute) {
+          const minuteIndex = Math.floor((nextRun.getTime() - firstMinute.getTime()) / 60_000);
+          if (minuteIndex >= 0 && minuteIndex < counts.length) counts[minuteIndex] += 1;
+          nextRun = expression.next().toDate();
+        }
+      } catch {
+        // Ignore invalid schedules, matching the next-job display behavior.
+      }
+    });
+
+  const levels = ["none", "low", "medium", "high", "max"];
+  timeline.innerHTML = counts
+    .map((count, index) => {
+      const level = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : count <= 7 ? 3 : 4;
+      const time = new Date(firstMinute.getTime() + index * 60_000);
+      const label = `${time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}: ${count} ${count === 1 ? "job" : "jobs"}`;
+      return `<span class="cron-timeline-minute level-${levels[level]}" title="${label}" aria-hidden="true"></span>`;
+    })
+    .join("");
+  timeline.setAttribute("aria-label", `Scheduled jobs during the next hour: ${counts.reduce((sum, count) => sum + count, 0)} total runs`);
+  range.textContent = `${firstMinute.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(lastMinute.getTime() + 60_000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 function updateNextUp(jobs) {
   const nameElement = document.getElementById("nextUpName");
-  const timing = document.getElementById("nextUpTiming");
-  const countdown = document.getElementById("nextUpCountdown");
   if (!jobs.some((job) => job.enabled)) {
     nameElement.textContent = "No active scheduled jobs";
     nameElement.title = "";
-    timing.classList.add("d-none");
     return;
   }
 
@@ -72,15 +96,14 @@ function updateNextUp(jobs) {
   if (!next) {
     nameElement.textContent = "No upcoming timed run";
     nameElement.title = "";
-    timing.classList.add("d-none");
     return;
   }
 
   const name = next.job.comment?.trim() || next.job.command || "Unnamed cron job";
-  nameElement.textContent = name;
-  nameElement.title = name;
-  countdown.textContent = formatTimeUntil(next.nextRun, now);
-  timing.classList.remove("d-none");
+  const minutesUntil = Math.ceil((next.nextRun.getTime() - now.getTime()) / 60_000);
+  const timing = `in ${minutesUntil} minute${minutesUntil === 1 ? "" : "s"}`;
+  nameElement.textContent = `${name} — ${timing}`;
+  nameElement.title = `${name} — ${timing}`;
 }
 
 // Set app version in footer
@@ -140,15 +163,6 @@ const modals = {
     focus: false,
   }),
 };
-
-// Add modal hide event listeners
-["addModal", "editModal", "deleteModal", "crontabModal", "executionHistoryModal", "crontabHistoryModal"].forEach(
-  (modalId) => {
-    document.getElementById(modalId).addEventListener("hidden.bs.modal", () => {
-      document.querySelector("[data-refresh]").focus();
-    });
-  }
-);
 
 async function loadHostname() {
   try {
@@ -364,12 +378,12 @@ async function loadJobs() {
     allJobs = await res.json();
     jobsLoaded = true;
     updateNextUp(allJobs);
+    updateCronTimeline(allJobs);
     countJobsByStatus(allJobs);
     applyJobFilters();
   } catch (err) {
     jobsLoaded = false;
-    document.getElementById("nextUpName").textContent = "Could not load scheduled jobs — refresh to try again";
-    document.getElementById("nextUpTiming").classList.add("d-none");
+    document.getElementById("nextUpName").textContent = "Could not load scheduled jobs — reload the page to try again";
     jobList.innerHTML = `<div class="cron-card cron-card-error text-danger text-center py-3">Failed to load jobs. ${err.message}</div>`;
   }
 }
@@ -432,7 +446,6 @@ document.getElementById("confirmDelete").addEventListener("click", async () => {
     } catch (err) {
       showAppError(`Failed to delete job: ${err.message}`);
     }
-    document.querySelector("[data-refresh]").focus();
     modals.delete.hide();
     jobToDelete = null;
     loadJobs();
@@ -478,7 +491,6 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  document.querySelector("[data-refresh]").focus();
   modals.add.hide();
   form.reset();
   loadJobs();
@@ -547,20 +559,26 @@ document.getElementById("editForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  document.querySelector("[data-refresh]").focus();
   modals.edit.hide();
   form.reset();
   loadJobs();
 });
-
-// Add event listener for refresh button
-document.querySelector("[data-refresh]").addEventListener("click", loadJobs);
 
 // Initial load and periodic countdown refresh
 loadJobs();
 window.setInterval(() => {
   if (jobsLoaded) updateNextUp(allJobs);
 }, 30_000);
+
+function scheduleMinuteRefresh() {
+  const now = new Date();
+  const delay = 60_000 - (now.getSeconds() * 1_000 + now.getMilliseconds());
+  window.setTimeout(() => {
+    if (jobsLoaded) updateCronTimeline(allJobs);
+    scheduleMinuteRefresh();
+  }, delay);
+}
+scheduleMinuteRefresh();
 
 async function loadLogs(logPath, lines = 100) {
   const logElement = document.getElementById("logOutput");
@@ -762,7 +780,6 @@ document.getElementById("confirmImportJobs").addEventListener("click", async () 
       body: JSON.stringify({ jobs: jobsConverted }),
     });
     jobsToImport = [];
-    document.querySelector("[data-refresh]").focus();
     bootstrap.Modal.getInstance(document.getElementById("importPreviewModal")).hide();
     loadJobs();
   }
