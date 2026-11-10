@@ -2,6 +2,12 @@
 
 A web interface for managing system cron jobs, with a FastAPI backend and a vanilla JS + Bootstrap frontend built with Vite.
 
+The Full Crontab view uses highlight.js with Bash syntax highlighting for shell commands, variables, strings, and comments, while preserving the original crontab text. A non-selectable line-number gutter and horizontal scrolling keep long lines aligned without including line numbers when copying code.
+
+Alerts use square corners and Bootstrap's semantic info, warning, danger, and success colors to distinguish status messages, cautions, errors, and confirmed restores.
+
+The custom UI palette uses eight base colors in `frontend/src/style.scss`. Hover states, badges, glows, and timeline intensity shades are derived with `color-mix()`. Bootstrap alerts and syntax/diff highlighting retain their semantic palettes.
+
 ---
 
 ## Development setup
