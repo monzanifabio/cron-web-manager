@@ -24,9 +24,10 @@
   --color-danger: #ae4d41;
   --color-danger-hover: rgba(174, 77, 65, 0.8);
   --color-dark-hover: rgba(43, 49, 52, 0.8);
-  --color-success-badge-bg: #204736;
-  --color-success-badge-text: #56ad87;
-  --color-danger-badge-bg: #542a26;
+  --color-success-badge-bg: #163125;
+  --color-success-badge-text: #28be85;
+  --color-danger-badge-bg: #3c1e1b;
+  --color-danger-badge-text: #e56252;
   --color-timeline-low: #28be85;
   --color-timeline-medium: #006d32;
   --color-timeline-high: #26a641;
@@ -130,7 +131,6 @@ td {
 }
 
 .cron-card:hover {
-  border-color: var(--color-card-border-hover);
   background-color: var(--color-surface-dark);
 }
 
@@ -308,10 +308,15 @@ td {
 .dropdown-menu {
   padding: 8px;
   border-radius: 0px;
+  background-color: var(--color-page-background);
 }
 .dropdown-item {
   font-family: var(--font-mono);
   padding: 0.25rem 0.25rem;
+}
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--color-surface-dark);
 }
 
 .form-control {
@@ -339,11 +344,12 @@ td {
 
 .modal-header {
   padding: 0.5rem 1rem;
-  background-color: var(--color-surface-dark) !important;
+  background-color: var(--color-page-background) !important;
 }
 
 .modal-content {
   border-radius: 0px;
+  background-color: var(--color-page-background);
 }
 
 .modal-output {
@@ -369,7 +375,7 @@ td {
 
 .badge-danger {
   background-color: var(--color-danger-badge-bg);
-  color: var(--color-danger);
+  color: var(--color-danger-badge-text);
 }
 
 .footer-section {
